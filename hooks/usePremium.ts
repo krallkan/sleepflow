@@ -5,8 +5,7 @@ import { Linking, Alert } from 'react-native';
 const PREMIUM_KEY = 'sleepflow_premium';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.sleepflow.app';
 
-// TEST MODU: true iken tüm pro özellikler açık, mağazaya yüklemeden önce false yap
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 export const IAP_SKUS = {
   monthly: 'sleepflow_pro_monthly',

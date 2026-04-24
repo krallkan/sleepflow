@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android
 
 on:
   push:
@@ -36,16 +36,34 @@ jobs:
       - name: Setup Expo
         run: npm install -g expo-cli @expo/cli
 
-      - name: Prebuild (generate android folder)
+      - name: Prebuild Android
         run: npx expo prebuild --platform android --clean
         env:
           EXPO_NO_TELEMETRY: 1
 
-      - name: Build APK
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/sleepflow-release.keystore
+
+      - name: Build Release APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file=sleepflow-release.keystore \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g"
+
+      - name: Build Release AAB (Play Store)
+        run: |
+          cd android
+          ./gradlew bundleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file=sleepflow-release.keystore \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
         env:
           GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g"
 
@@ -56,8 +74,15 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sleepflow-release
+          name: sleepflow-apk
           path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sleepflow-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
 
       - name: Create GitHub Release
@@ -65,7 +90,9 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}-build${{ github.run_number }}
           name: SleepFlow v${{ steps.version.outputs.version }} (Build ${{ github.run_number }})
-          files: android/app/build/outputs/apk/release/app-release.apk
+          files: |
+            android/app/build/outputs/apk/release/app-release.apk
+            android/app/build/outputs/bundle/release/app-release.aab
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

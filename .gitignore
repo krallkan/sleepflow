@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Keystore & secrets
+*.keystore
+*.b64
+keystore.b64
+google-play-key.json
