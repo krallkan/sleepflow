@@ -61,7 +61,7 @@ export function useAudioPlayer() {
     try {
       await setupAudio();
       const { sound: audioSound } = await Audio.Sound.createAsync(
-        { uri: sound.url },
+        sound.asset,
         { shouldPlay: true, isLooping: true, volume: 0.8 }
       );
       soundRefs.current[sound.id] = audioSound;

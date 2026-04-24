@@ -5,10 +5,9 @@ export interface Sound {
   description: string;
   isPremium: boolean;
   color: string;
-  url: string;
+  asset: any;
 }
 
-// All URLs are public domain / CC0 audio from reliable CDNs
 export const SOUNDS: Sound[] = [
   {
     id: 'white_noise',
@@ -17,7 +16,7 @@ export const SOUNDS: Sound[] = [
     description: 'Classic static noise for deep sleep',
     isPremium: false,
     color: '#6C63FF',
-    url: 'https://www.soundjay.com/misc/sounds/white-noise-1.mp3',
+    asset: require('../assets/sounds/white_noise.wav'),
   },
   {
     id: 'rain',
@@ -26,7 +25,7 @@ export const SOUNDS: Sound[] = [
     description: 'Gentle rainfall to calm your mind',
     isPremium: false,
     color: '#4A9EBF',
-    url: 'https://www.soundjay.com/nature/sounds/rain-01.mp3',
+    asset: require('../assets/sounds/rain.wav'),
   },
   {
     id: 'ocean',
@@ -35,7 +34,7 @@ export const SOUNDS: Sound[] = [
     description: 'Relaxing ocean waves on the shore',
     isPremium: false,
     color: '#0077B6',
-    url: 'https://www.soundjay.com/nature/sounds/ocean-wave-1.mp3',
+    asset: require('../assets/sounds/ocean.wav'),
   },
   {
     id: 'forest',
@@ -44,7 +43,7 @@ export const SOUNDS: Sound[] = [
     description: 'Birds and wind through the trees',
     isPremium: true,
     color: '#2D6A4F',
-    url: 'https://www.soundjay.com/nature/sounds/birds-1.mp3',
+    asset: require('../assets/sounds/forest.wav'),
   },
   {
     id: 'thunderstorm',
@@ -53,7 +52,7 @@ export const SOUNDS: Sound[] = [
     description: 'Distant thunder and heavy rain',
     isPremium: true,
     color: '#4A4E69',
-    url: 'https://www.soundjay.com/nature/sounds/thunder-1.mp3',
+    asset: require('../assets/sounds/thunderstorm.wav'),
   },
   {
     id: 'fan',
@@ -62,7 +61,7 @@ export const SOUNDS: Sound[] = [
     description: 'Steady fan hum for focus and sleep',
     isPremium: true,
     color: '#5C7A9E',
-    url: 'https://www.soundjay.com/misc/sounds/fan-1.mp3',
+    asset: require('../assets/sounds/fan.wav'),
   },
   {
     id: 'fireplace',
@@ -71,7 +70,7 @@ export const SOUNDS: Sound[] = [
     description: 'Crackling fire for cozy nights',
     isPremium: true,
     color: '#C1440E',
-    url: 'https://www.soundjay.com/misc/sounds/fire-1.mp3',
+    asset: require('../assets/sounds/fireplace.wav'),
   },
   {
     id: 'brown_noise',
@@ -80,7 +79,7 @@ export const SOUNDS: Sound[] = [
     description: 'Deeper, warmer noise for relaxation',
     isPremium: true,
     color: '#8B5E3C',
-    url: 'https://www.soundjay.com/misc/sounds/brown-noise-1.mp3',
+    asset: require('../assets/sounds/brown_noise.wav'),
   },
 ];
 

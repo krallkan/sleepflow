@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { SOUNDS } from '../constants/sounds';
@@ -17,6 +18,7 @@ import ReminderModal from '../components/ReminderModal';
 import StatsBar, { useSessionTracker } from '../components/StatsBar';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const { tracks, isPlaying, isActive, isLoading, toggleSound, stopAll, setTrackVolume } = useAudioPlayer();
   const { isPremium, isLoading: purchaseLoading, purchase, restore } = usePremium();
   const { timerMinutes, formatRemaining, startTimer, clearTimer } = useTimer(stopAll);
@@ -71,7 +73,7 @@ export default function HomeScreen() {
         end={{ x: 0.5, y: 0.4 }}
       />
 
-      <SafeAreaView style={styles.safe}>
+      <View style={[styles.safe, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={styles.header}>
           <View>
             <Text style={styles.appName}>SleepFlow</Text>
@@ -174,7 +176,7 @@ export default function HomeScreen() {
             onVolumeChange={setTrackVolume}
           />
         )}
-      </SafeAreaView>
+      </View>
 
       <TimerModal
         visible={timerVisible}
