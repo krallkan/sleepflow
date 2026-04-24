@@ -17,11 +17,13 @@ import SoundCard from '../components/SoundCard';
 import PlayerBar from '../components/PlayerBar';
 import TimerModal from '../components/TimerModal';
 import PremiumModal from '../components/PremiumModal';
+import StatsBar, { useSessionTracker } from '../components/StatsBar';
 
 export default function HomeScreen() {
   const { currentSound, isPlaying, isLoading, volume, togglePlay, stop, changeVolume } = useAudioPlayer();
   const { isPremium, purchase, restore } = usePremium();
   const { timerMinutes, formatRemaining, startTimer, clearTimer } = useTimer(stop);
+  useSessionTracker(isPlaying);
 
   const [timerVisible, setTimerVisible] = useState(false);
   const [premiumVisible, setPremiumVisible] = useState(false);
@@ -37,7 +39,10 @@ export default function HomeScreen() {
   const handleRestore = useCallback(async () => {
     const restored = await restore();
     setPremiumVisible(false);
-    Alert.alert(restored ? 'Restored! ✅' : 'No purchase found', restored ? 'Your Pro access is active.' : 'No previous purchase found.');
+    Alert.alert(
+      restored ? 'Restored! ✅' : 'No purchase found',
+      restored ? 'Your Pro access is active.' : 'No previous purchase found.'
+    );
   }, [restore]);
 
   return (
@@ -53,17 +58,13 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.appName}>SleepFlow</Text>
-            <Text style={styles.tagline}>Sleep better tonight</Text>
+            <Text style={styles.tagline}>Sleep better tonight 🌙</Text>
           </View>
-          {!isPremium && (
-            <Text
-              style={styles.proLink}
-              onPress={() => setPremiumVisible(true)}
-            >
+          {!isPremium ? (
+            <Text style={styles.proLink} onPress={() => setPremiumVisible(true)}>
               👑 Get Pro
             </Text>
-          )}
-          {isPremium && (
+          ) : (
             <View style={styles.proBadge}>
               <Text style={styles.proBadgeText}>PRO 👑</Text>
             </View>
@@ -75,6 +76,8 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         >
+          <StatsBar />
+
           <Text style={styles.sectionLabel}>Free Sounds</Text>
           {SOUNDS.filter(s => !s.isPremium).map(sound => (
             <SoundCard
@@ -88,7 +91,7 @@ export default function HomeScreen() {
             />
           ))}
 
-          <Text style={[styles.sectionLabel, { marginTop: 20 }]}>
+          <Text style={[styles.sectionLabel, { marginTop: 24 }]}>
             Premium Sounds {!isPremium && '🔒'}
           </Text>
           {SOUNDS.filter(s => s.isPremium).map(sound => (
@@ -103,7 +106,24 @@ export default function HomeScreen() {
             />
           ))}
 
-          <View style={styles.bottomPad} />
+          {!isPremium && (
+            <View style={styles.upsell}>
+              <LinearGradient
+                colors={[Colors.primary + '22', Colors.primary + '08']}
+                style={styles.upsellInner}
+              >
+                <Text style={styles.upsellTitle}>👑 Unlock All Sounds</Text>
+                <Text style={styles.upsellSub}>
+                  Get 5 more sounds + no ads for just $2.99/month
+                </Text>
+                <Text style={styles.upsellBtn} onPress={() => setPremiumVisible(true)}>
+                  Start Free Trial →
+                </Text>
+              </LinearGradient>
+            </View>
+          )}
+
+          <View style={{ height: 20 }} />
         </ScrollView>
 
         {currentSound && isPlaying && (
@@ -173,6 +193,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.gold + '40',
+    overflow: 'hidden',
   },
   proBadge: {
     paddingHorizontal: 14,
@@ -194,16 +215,41 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: Colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginHorizontal: 20,
     marginBottom: 10,
-    marginTop: 4,
   },
-  bottomPad: {
-    height: 16,
+  upsell: {
+    marginHorizontal: 16,
+    marginTop: 24,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  upsellInner: {
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.primary + '33',
+  },
+  upsellTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: Colors.text,
+    marginBottom: 6,
+  },
+  upsellSub: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 14,
+    lineHeight: 18,
+  },
+  upsellBtn: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.primary,
   },
 });
