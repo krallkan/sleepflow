@@ -42,7 +42,6 @@
           "androidAppId": "ca-app-pub-5933378571335845~7971517649"
         }
       ],
-      "react-native-iap",
       "expo-notifications"
     ],
     "scheme": "sleepflow",

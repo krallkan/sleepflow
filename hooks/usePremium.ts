@@ -1,18 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform, Alert } from 'react-native';
-import {
-  initConnection,
-  endConnection,
-  requestSubscription,
-  purchaseUpdatedListener,
-  purchaseErrorListener,
-  finishTransaction,
-  getAvailablePurchases,
-  type SubscriptionPurchase,
-} from 'react-native-iap';
+import { Linking, Alert } from 'react-native';
 
 const PREMIUM_KEY = 'sleepflow_premium';
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.sleepflow.app';
 
 export const IAP_SKUS = {
   monthly: 'sleepflow_pro_monthly',
@@ -22,77 +13,41 @@ export const IAP_SKUS = {
 export function usePremium() {
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(PREMIUM_KEY).then(v => {
       if (v === 'true') setIsPremium(true);
     });
-
-    if (Platform.OS !== 'android') return;
-
-    initConnection()
-      .then(() => setConnected(true))
-      .catch(() => {});
-
-    const purchaseListener = purchaseUpdatedListener(async (purchase: SubscriptionPurchase) => {
-      if (purchase.transactionReceipt) {
-        await finishTransaction({ purchase, isConsumable: false });
-        await AsyncStorage.setItem(PREMIUM_KEY, 'true');
-        setIsPremium(true);
-      }
-    });
-
-    const errorListener = purchaseErrorListener(err => {
-      if ((err as any).code !== 'E_USER_CANCELLED') {
-        Alert.alert('Purchase failed', err.message);
-      }
-    });
-
-    return () => {
-      purchaseListener.remove();
-      errorListener.remove();
-      endConnection().catch(() => {});
-    };
   }, []);
 
-  const purchase = useCallback(async (sku: string = IAP_SKUS.monthly) => {
-    if (!connected) {
-      Alert.alert('Store not available', 'Please check your internet connection.');
-      return false;
-    }
+  // Opens Google Play subscription page — actual billing handled by Play Store
+  const purchase = useCallback(async (_sku: string = IAP_SKUS.monthly) => {
     try {
       setIsLoading(true);
-      await requestSubscription({ sku });
-      return true;
-    } catch (e: any) {
-      if (e.code !== 'E_USER_CANCELLED') {
-        Alert.alert('Purchase error', e.message);
-      }
-      return false;
+      await Linking.openURL(PLAY_STORE_URL);
+    } catch {
+      Alert.alert('Error', 'Could not open Google Play Store.');
     } finally {
       setIsLoading(false);
     }
-  }, [connected]);
+    return true;
+  }, []);
 
   const restore = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const purchases = await getAvailablePurchases();
-      const hasPro = purchases.some(p =>
-        Object.values(IAP_SKUS).includes(p.productId)
-      );
-      if (hasPro) {
-        await AsyncStorage.setItem(PREMIUM_KEY, 'true');
-        setIsPremium(true);
-      }
-      return hasPro;
-    } catch {
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
+    // Manual restore: user contacts support or re-installs
+    Alert.alert(
+      'Restore Purchase',
+      'If you have an active subscription, please contact support@sleepflow.app',
+      [{ text: 'OK' }]
+    );
+    return false;
   }, []);
 
-  return { isPremium, isLoading, purchase, restore };
+  // Dev/test unlock (remove in production)
+  const unlock = useCallback(async () => {
+    await AsyncStorage.setItem(PREMIUM_KEY, 'true');
+    setIsPremium(true);
+  }, []);
+
+  return { isPremium, isLoading, purchase, restore, unlock };
 }
