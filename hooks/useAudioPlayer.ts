@@ -2,77 +2,103 @@ import { useState, useRef, useCallback } from 'react';
 import { Audio } from 'expo-av';
 import { Sound } from '../constants/sounds';
 
-export function useAudioPlayer() {
-  const [currentSound, setCurrentSound] = useState<Sound | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [volume, setVolume] = useState(0.8);
-  const soundRef = useRef<Audio.Sound | null>(null);
+export interface ActiveTrack {
+  sound: Sound;
+  volume: number;
+  isLoading: boolean;
+}
 
-  const stop = useCallback(async () => {
-    if (soundRef.current) {
-      await soundRef.current.stopAsync();
-      await soundRef.current.unloadAsync();
-      soundRef.current = null;
-    }
-    setIsPlaying(false);
-    setCurrentSound(null);
+export function useAudioPlayer() {
+  const [tracks, setTracks] = useState<ActiveTrack[]>([]);
+  const soundRefs = useRef<Record<string, Audio.Sound>>({});
+
+  const isPlaying = tracks.length > 0;
+
+  const setupAudio = useCallback(async () => {
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: true,
+      shouldDuckAndroid: false,
+    });
   }, []);
 
-  const play = useCallback(async (sound: Sound) => {
-    try {
-      setIsLoading(true);
+  const isActive = useCallback((soundId: string) => {
+    return tracks.some(t => t.sound.id === soundId);
+  }, [tracks]);
 
-      if (soundRef.current) {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
+  const isLoading = useCallback((soundId: string) => {
+    return tracks.find(t => t.sound.id === soundId)?.isLoading ?? false;
+  }, [tracks]);
+
+  const toggleSound = useCallback(async (sound: Sound, isPremium: boolean) => {
+    // If already playing — stop it
+    if (soundRefs.current[sound.id]) {
+      await soundRefs.current[sound.id].stopAsync();
+      await soundRefs.current[sound.id].unloadAsync();
+      delete soundRefs.current[sound.id];
+      setTracks(prev => prev.filter(t => t.sound.id !== sound.id));
+      return;
+    }
+
+    // Free users: max 1 sound
+    if (!isPremium && tracks.length >= 1) {
+      const existing = tracks[0];
+      if (soundRefs.current[existing.sound.id]) {
+        await soundRefs.current[existing.sound.id].stopAsync();
+        await soundRefs.current[existing.sound.id].unloadAsync();
+        delete soundRefs.current[existing.sound.id];
       }
+      setTracks([]);
+    }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-        shouldDuckAndroid: false,
-      });
+    // Premium: max 2 sounds
+    if (isPremium && tracks.length >= 2) return;
 
-      const { sound: newSound } = await Audio.Sound.createAsync(
+    // Mark as loading
+    setTracks(prev => [...prev, { sound, volume: 0.8, isLoading: true }]);
+
+    try {
+      await setupAudio();
+      const { sound: audioSound } = await Audio.Sound.createAsync(
         { uri: sound.url },
-        { shouldPlay: true, isLooping: true, volume }
+        { shouldPlay: true, isLooping: true, volume: 0.8 }
       );
-
-      soundRef.current = newSound;
-      setCurrentSound(sound);
-      setIsPlaying(true);
+      soundRefs.current[sound.id] = audioSound;
+      setTracks(prev => prev.map(t =>
+        t.sound.id === sound.id ? { ...t, isLoading: false } : t
+      ));
     } catch (e) {
-      console.error('Audio error:', e);
-    } finally {
-      setIsLoading(false);
+      console.error('Audio load error:', e);
+      setTracks(prev => prev.filter(t => t.sound.id !== sound.id));
     }
-  }, [volume]);
+  }, [tracks, setupAudio]);
 
-  const togglePlay = useCallback(async (sound: Sound) => {
-    if (currentSound?.id === sound.id && isPlaying) {
-      await stop();
-    } else {
-      await play(sound);
+  const stopAll = useCallback(async () => {
+    for (const ref of Object.values(soundRefs.current)) {
+      await ref.stopAsync().catch(() => {});
+      await ref.unloadAsync().catch(() => {});
     }
-  }, [currentSound, isPlaying, play, stop]);
+    soundRefs.current = {};
+    setTracks([]);
+  }, []);
 
-  const changeVolume = useCallback(async (val: number) => {
-    setVolume(val);
-    if (soundRef.current) {
-      await soundRef.current.setVolumeAsync(val);
+  const setTrackVolume = useCallback(async (soundId: string, volume: number) => {
+    if (soundRefs.current[soundId]) {
+      await soundRefs.current[soundId].setVolumeAsync(volume);
     }
+    setTracks(prev => prev.map(t =>
+      t.sound.id === soundId ? { ...t, volume } : t
+    ));
   }, []);
 
   return {
-    currentSound,
+    tracks,
     isPlaying,
+    isActive,
     isLoading,
-    volume,
-    togglePlay,
-    stop,
-    changeVolume,
+    toggleSound,
+    stopAll,
+    setTrackVolume,
   };
 }
