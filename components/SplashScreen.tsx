@@ -1,100 +1,81 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import Animated, {
-  useSharedValue, useAnimatedStyle,
-  withTiming, withDelay, withSequence,
-  runOnJS, Easing,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated, Dimensions, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/colors';
 
 const { width, height } = Dimensions.get('window');
 
-interface Props {
-  onDone: () => void;
-}
+interface Props { onDone: () => void; }
 
 export default function SplashScreen({ onDone }: Props) {
-  const logoScale = useSharedValue(0.4);
-  const logoOpacity = useSharedValue(0);
-  const moonOpacity = useSharedValue(0);
-  const moonY = useSharedValue(20);
-  const textOpacity = useSharedValue(0);
-  const textY = useSharedValue(16);
-  const star1 = useSharedValue(0);
-  const star2 = useSharedValue(0);
-  const star3 = useSharedValue(0);
-  const containerOpacity = useSharedValue(1);
+  const moonOpacity = useRef(new Animated.Value(0)).current;
+  const moonY = useRef(new Animated.Value(30)).current;
+  const moonScale = useRef(new Animated.Value(0.7)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
+  const textOpacity = useRef(new Animated.Value(0)).current;
+  const textY = useRef(new Animated.Value(12)).current;
+  const star1 = useRef(new Animated.Value(0)).current;
+  const star2 = useRef(new Animated.Value(0)).current;
+  const star3 = useRef(new Animated.Value(0)).current;
+  const containerOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Stars twinkle in
-    star1.value = withDelay(200, withTiming(1, { duration: 600 }));
-    star2.value = withDelay(400, withTiming(1, { duration: 600 }));
-    star3.value = withDelay(300, withTiming(1, { duration: 600 }));
+    Animated.sequence([
+      // Stars twinkle in
+      Animated.parallel([
+        Animated.timing(star1, { toValue: 1, duration: 500, delay: 100, useNativeDriver: true }),
+        Animated.timing(star2, { toValue: 1, duration: 500, delay: 250, useNativeDriver: true }),
+        Animated.timing(star3, { toValue: 1, duration: 500, delay: 180, useNativeDriver: true }),
+      ]),
+      // Moon drops in
+      Animated.parallel([
+        Animated.timing(moonOpacity, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.spring(moonY, { toValue: 0, friction: 7, tension: 80, useNativeDriver: true }),
+        Animated.spring(moonScale, { toValue: 1, friction: 7, tension: 80, useNativeDriver: true }),
+      ]),
+      // Logo fades in
+      Animated.parallel([
+        Animated.timing(logoOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.spring(logoScale, { toValue: 1, friction: 8, tension: 100, useNativeDriver: true }),
+      ]),
+      // Tagline
+      Animated.parallel([
+        Animated.timing(textOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.timing(textY, { toValue: 0, duration: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      ]),
+      // Hold
+      Animated.delay(800),
+      // Fade out
+      Animated.timing(containerOpacity, { toValue: 0, duration: 500, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+    ]).start();
 
-    // Moon drops in
-    moonOpacity.value = withDelay(300, withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) }));
-    moonY.value = withDelay(300, withTiming(0, { duration: 700, easing: Easing.out(Easing.back(1.2)) }));
-
-    // Logo scales in
-    logoOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
-    logoScale.value = withDelay(600, withTiming(1, { duration: 700, easing: Easing.out(Easing.back(1.3)) }));
-
-    // Tagline fades in
-    textOpacity.value = withDelay(1000, withTiming(1, { duration: 500 }));
-    textY.value = withDelay(1000, withTiming(0, { duration: 500, easing: Easing.out(Easing.cubic) }));
-
-    // Fade out and call onDone
-    containerOpacity.value = withDelay(2400, withSequence(
-      withTiming(0, { duration: 600, easing: Easing.in(Easing.cubic) }),
-    ));
-
-    const timer = setTimeout(() => { onDone(); }, 3000);
+    const timer = setTimeout(onDone, 3200);
     return () => clearTimeout(timer);
   }, []);
 
-  const moonStyle = useAnimatedStyle(() => ({
-    opacity: moonOpacity.value,
-    transform: [{ translateY: moonY.value }],
-  }));
-
-  const logoStyle = useAnimatedStyle(() => ({
-    opacity: logoOpacity.value,
-    transform: [{ scale: logoScale.value }],
-  }));
-
-  const textStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value,
-    transform: [{ translateY: textY.value }],
-  }));
-
-  const containerStyle = useAnimatedStyle(() => ({
-    opacity: containerOpacity.value,
-  }));
-
-  const starStyle1 = useAnimatedStyle(() => ({ opacity: star1.value }));
-  const starStyle2 = useAnimatedStyle(() => ({ opacity: star2.value }));
-  const starStyle3 = useAnimatedStyle(() => ({ opacity: star3.value }));
-
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, containerStyle]}>
+    <Animated.View style={[StyleSheet.absoluteFill, { opacity: containerOpacity }]}>
       <LinearGradient
-        colors={['#0A0820', '#0D1829', '#080C14']}
+        colors={['#0A0820', '#0D1829', Colors.background]}
         style={StyleSheet.absoluteFill}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       />
 
       {/* Stars */}
-      <Animated.Text style={[styles.star, { top: height * 0.12, left: width * 0.15 }, starStyle1]}>✦</Animated.Text>
-      <Animated.Text style={[styles.star, { top: height * 0.08, right: width * 0.2 }, starStyle2]}>✦</Animated.Text>
-      <Animated.Text style={[styles.star, { top: height * 0.18, right: width * 0.35 }, starStyle3]}>✦</Animated.Text>
-      <Animated.Text style={[styles.starSm, { top: height * 0.22, left: width * 0.35 }, starStyle2]}>·</Animated.Text>
-      <Animated.Text style={[styles.starSm, { top: height * 0.14, right: width * 0.12 }, starStyle1]}>·</Animated.Text>
+      <Animated.Text style={[styles.star, { top: height * 0.12, left: width * 0.15, opacity: star1 }]}>✦</Animated.Text>
+      <Animated.Text style={[styles.star, { top: height * 0.08, right: width * 0.2, opacity: star2 }]}>✦</Animated.Text>
+      <Animated.Text style={[styles.starSm, { top: height * 0.18, right: width * 0.35, opacity: star3 }]}>·</Animated.Text>
+      <Animated.Text style={[styles.starSm, { top: height * 0.22, left: width * 0.35, opacity: star2 }]}>·</Animated.Text>
+      <Animated.Text style={[styles.star, { top: height * 0.14, right: width * 0.12, opacity: star1 }]}>✦</Animated.Text>
 
       <View style={styles.center}>
         {/* Moon */}
-        <Animated.View style={[styles.moonWrap, moonStyle]}>
+        <Animated.View style={[styles.moonWrap, {
+          opacity: moonOpacity,
+          transform: [{ translateY: moonY }, { scale: moonScale }],
+        }]}>
           <LinearGradient
             colors={['#C8B8FF', '#7C6FFF', '#4A3DB5']}
             style={styles.moonGradient}
@@ -106,17 +87,22 @@ export default function SplashScreen({ onDone }: Props) {
         </Animated.View>
 
         {/* App name */}
-        <Animated.View style={logoStyle}>
-          <Text style={styles.appName}>SleepFlow</Text>
-        </Animated.View>
+        <Animated.Text style={[styles.appName, {
+          opacity: logoOpacity,
+          transform: [{ scale: logoScale }],
+        }]}>
+          SleepFlow
+        </Animated.Text>
 
         {/* Tagline */}
-        <Animated.View style={textStyle}>
-          <Text style={styles.tagline}>Peaceful sounds for a restful night</Text>
-        </Animated.View>
+        <Animated.Text style={[styles.tagline, {
+          opacity: textOpacity,
+          transform: [{ translateY: textY }],
+        }]}>
+          Peaceful sounds for a restful night
+        </Animated.Text>
       </View>
 
-      {/* Bottom glow */}
       <View style={styles.glowBottom} />
     </Animated.View>
   );
@@ -160,7 +146,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     fontSize: 14,
     color: '#C8B8FF',
-    opacity: 0.8,
   },
   starSm: {
     position: 'absolute',

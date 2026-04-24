@@ -1,9 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Animated, {
-  useSharedValue, useAnimatedStyle,
-  withTiming, withSpring, Easing,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Slider from '@react-native-community/slider';
@@ -21,35 +17,31 @@ interface Props {
 
 export default function PlayerBar({ tracks, timerLabel, onStop, onTimerPress, onVolumeChange, visible }: Props) {
   const insets = useSafeAreaInsets();
-  const translateY = useSharedValue(120);
-  const opacity = useSharedValue(0);
+  const translateY = useRef(new Animated.Value(120)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      translateY.value = withSpring(0, { damping: 18, stiffness: 180 });
-      opacity.value = withTiming(1, { duration: 250 });
+      Animated.parallel([
+        Animated.spring(translateY, { toValue: 0, friction: 10, tension: 120, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),
+      ]).start();
     } else {
-      translateY.value = withTiming(120, { duration: 280, easing: Easing.in(Easing.cubic) });
-      opacity.value = withTiming(0, { duration: 200 });
+      Animated.parallel([
+        Animated.timing(translateY, { toValue: 120, duration: 260, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
     }
   }, [visible]);
 
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    opacity: opacity.value,
-  }));
-
-  const bottomPad = Math.max(insets.bottom, 12);
-
   return (
-    <Animated.View style={[styles.wrapper, animStyle, { paddingBottom: bottomPad }]}>
+    <Animated.View style={[styles.wrapper, { transform: [{ translateY }], opacity, paddingBottom: Math.max(insets.bottom, 12) }]}>
       <LinearGradient
-        colors={['rgba(8,12,20,0)', 'rgba(8,12,20,0.98)', Colors.background]}
+        colors={['rgba(8,12,20,0)', 'rgba(8,12,20,0.97)', Colors.background]}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
       />
-
       <View style={styles.content}>
         <View style={styles.topRow}>
           <View style={styles.nowPlayingCol}>
@@ -58,12 +50,10 @@ export default function PlayerBar({ tracks, timerLabel, onStop, onTimerPress, on
               {tracks.map(t => `${t.sound.emoji} ${t.sound.name}`).join('  +  ')}
             </Text>
           </View>
-
           <TouchableOpacity style={styles.timerBtn} onPress={onTimerPress}>
             <Text style={styles.timerIcon}>⏱</Text>
             {timerLabel && <Text style={styles.timerLabel}>{timerLabel}</Text>}
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.stopBtn} onPress={onStop}>
             <Text style={styles.stopIcon}>■</Text>
           </TouchableOpacity>
@@ -132,11 +122,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   timerIcon: { fontSize: 14 },
-  timerLabel: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '700',
-  },
+  timerLabel: { fontSize: 12, color: Colors.primary, fontWeight: '700' },
   stopBtn: {
     width: 40,
     height: 40,
@@ -147,22 +133,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.error + '44',
   },
-  stopIcon: {
-    color: Colors.error,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  volumeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
+  stopIcon: { color: Colors.error, fontSize: 12, fontWeight: '700' },
+  volumeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   trackEmoji: { fontSize: 14, width: 22, textAlign: 'center' },
   slider: { flex: 1, height: 32 },
-  volPct: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    width: 30,
-    textAlign: 'right',
-  },
+  volPct: { fontSize: 11, color: Colors.textMuted, width: 30, textAlign: 'right' },
 });

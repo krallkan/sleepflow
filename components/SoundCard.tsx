@@ -1,10 +1,5 @@
-import React, { useEffect } from 'react';
-import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
-import Animated, {
-  useSharedValue, useAnimatedStyle,
-  withRepeat, withSequence, withTiming, withSpring,
-  interpolate, Easing,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Sound } from '../constants/sounds';
 import { Colors } from '../constants/colors';
@@ -20,73 +15,49 @@ interface Props {
 
 export default function SoundCard({ sound, isActive, isLoading, isPremium, onPress, onPremiumPress }: Props) {
   const locked = sound.isPremium && !isPremium;
-  const scale = useSharedValue(1);
-  const glow = useSharedValue(0);
-  const waveA = useSharedValue(0);
-  const waveB = useSharedValue(0);
-  const waveC = useSharedValue(0);
-  const pressScale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  // Waveform bars
+  const wA = useRef(new Animated.Value(0.3)).current;
+  const wB = useRef(new Animated.Value(0.3)).current;
+  const wC = useRef(new Animated.Value(0.3)).current;
+
+  const waveLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
     if (isActive) {
-      scale.value = withSpring(1.02, { damping: 12, stiffness: 120 });
-      glow.value = withTiming(1, { duration: 400 });
-      waveA.value = withRepeat(
-        withSequence(
-          withTiming(1, { duration: 500, easing: Easing.inOut(Easing.sin) }),
-          withTiming(0.3, { duration: 500, easing: Easing.inOut(Easing.sin) })
-        ), -1, true
-      );
-      waveB.value = withRepeat(
-        withSequence(
-          withTiming(0.4, { duration: 400, easing: Easing.inOut(Easing.sin) }),
-          withTiming(1, { duration: 600, easing: Easing.inOut(Easing.sin) })
-        ), -1, true
-      );
-      waveC.value = withRepeat(
-        withSequence(
-          withTiming(0.7, { duration: 700, easing: Easing.inOut(Easing.sin) }),
-          withTiming(0.2, { duration: 500, easing: Easing.inOut(Easing.sin) })
-        ), -1, true
-      );
+      Animated.spring(scale, { toValue: 1.02, friction: 8, tension: 100, useNativeDriver: true }).start();
+
+      const makeWave = (val: Animated.Value, lo: number, hi: number, dur: number) =>
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(val, { toValue: hi, duration: dur, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+            Animated.timing(val, { toValue: lo, duration: dur, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+          ])
+        );
+
+      waveLoopRef.current = Animated.parallel([
+        makeWave(wA, 0.2, 1.0, 480),
+        makeWave(wB, 0.3, 1.0, 360),
+        makeWave(wC, 0.2, 0.8, 560),
+      ]);
+      waveLoopRef.current.start();
     } else {
-      scale.value = withSpring(1, { damping: 15 });
-      glow.value = withTiming(0, { duration: 300 });
-      waveA.value = withTiming(0, { duration: 300 });
-      waveB.value = withTiming(0, { duration: 300 });
-      waveC.value = withTiming(0, { duration: 300 });
+      waveLoopRef.current?.stop();
+      Animated.spring(scale, { toValue: 1, friction: 8, useNativeDriver: true }).start();
+      Animated.timing(wA, { toValue: 0.3, duration: 250, useNativeDriver: false }).start();
+      Animated.timing(wB, { toValue: 0.3, duration: 250, useNativeDriver: false }).start();
+      Animated.timing(wC, { toValue: 0.3, duration: 250, useNativeDriver: false }).start();
     }
+    return () => { waveLoopRef.current?.stop(); };
   }, [isActive]);
 
-  const containerStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value * pressScale.value }],
-  }));
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(glow.value, [0, 1], [0, 0.6]),
-  }));
-
-  const waveStyleA = useAnimatedStyle(() => ({
-    height: interpolate(waveA.value, [0, 1], [4, 18]),
-    opacity: interpolate(waveA.value, [0, 1], [0.3, 1]),
-  }));
-  const waveStyleB = useAnimatedStyle(() => ({
-    height: interpolate(waveB.value, [0, 1], [4, 26]),
-    opacity: interpolate(waveB.value, [0, 1], [0.3, 1]),
-  }));
-  const waveStyleC = useAnimatedStyle(() => ({
-    height: interpolate(waveC.value, [0, 1], [4, 14]),
-    opacity: interpolate(waveC.value, [0, 1], [0.3, 1]),
-  }));
-
-  const onPressIn = () => { pressScale.value = withSpring(0.96, { damping: 15 }); };
-  const onPressOut = () => { pressScale.value = withSpring(1, { damping: 15 }); };
+  const onPressIn = () => Animated.spring(pressScale, { toValue: 0.96, friction: 10, useNativeDriver: true }).start();
+  const onPressOut = () => Animated.spring(pressScale, { toValue: 1, friction: 10, useNativeDriver: true }).start();
 
   return (
-    <Animated.View style={[styles.wrapper, containerStyle]}>
-      {/* Glow halo behind active card */}
-      <Animated.View style={[styles.glowHalo, { backgroundColor: sound.color }, glowStyle]} />
-
+    <Animated.View style={[styles.wrapper, { transform: [{ scale: Animated.multiply(scale, pressScale) }] }]}>
       <TouchableOpacity
         style={styles.touchable}
         onPress={locked ? onPremiumPress : onPress}
@@ -96,16 +67,12 @@ export default function SoundCard({ sound, isActive, isLoading, isPremium, onPre
       >
         <LinearGradient
           colors={isActive
-            ? [sound.color + 'DD', sound.color + '55', Colors.surfaceElevated]
+            ? [sound.color + 'CC', sound.color + '44', Colors.surfaceElevated]
             : [Colors.surfaceElevated, Colors.surface]}
-          style={styles.card}
+          style={[styles.card, isActive && { borderColor: sound.color + '80' }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          {isActive && (
-            <View style={[styles.activeBorder, { borderColor: sound.color + '99' }]} />
-          )}
-
           <Text style={styles.emoji}>{sound.emoji}</Text>
 
           <View style={styles.info}>
@@ -115,21 +82,25 @@ export default function SoundCard({ sound, isActive, isLoading, isPremium, onPre
 
           <View style={styles.right}>
             {locked ? (
-              <View style={[styles.lockBadge, { backgroundColor: Colors.goldDim, borderColor: Colors.gold + '60' }]}>
-                <Text style={[styles.lockText, { color: Colors.gold }]}>PRO</Text>
+              <View style={styles.lockBadge}>
+                <Text style={styles.lockText}>PRO</Text>
               </View>
             ) : isLoading ? (
               <ActivityIndicator size="small" color={sound.color} />
             ) : isActive ? (
               <View style={styles.waveform}>
-                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleA]} />
-                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleB]} />
-                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleC]} />
-                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleB]} />
-                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleA]} />
+                {[wA, wB, wC, wB, wA].map((w, i) => (
+                  <Animated.View
+                    key={i}
+                    style={[styles.waveBar, {
+                      backgroundColor: sound.color,
+                      transform: [{ scaleY: w }],
+                    }]}
+                  />
+                ))}
               </View>
             ) : (
-              <View style={[styles.playBtn, { backgroundColor: Colors.primaryDim, borderColor: Colors.borderLight }]}>
+              <View style={styles.playBtn}>
                 <Text style={styles.playIcon}>▶</Text>
               </View>
             )}
@@ -146,13 +117,6 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     borderRadius: 18,
   },
-  glowHalo: {
-    position: 'absolute',
-    top: 4, left: 4, right: 4, bottom: -6,
-    borderRadius: 18,
-    opacity: 0,
-    filter: 'blur(12px)',
-  },
   touchable: {
     borderRadius: 18,
     overflow: 'hidden',
@@ -164,13 +128,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.border,
-    position: 'relative',
-  },
-  activeBorder: {
-    position: 'absolute',
-    top: 0, right: 0, bottom: 0, left: 0,
-    borderRadius: 18,
-    borderWidth: 1.5,
   },
   emoji: {
     fontSize: 30,
@@ -199,11 +156,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    backgroundColor: Colors.goldDim,
     borderWidth: 1,
+    borderColor: Colors.gold + '60',
   },
   lockText: {
     fontSize: 10,
     fontWeight: '800',
+    color: Colors.gold,
     letterSpacing: 0.5,
   },
   playBtn: {
@@ -212,7 +172,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.primaryDim,
     borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
   playIcon: {
     color: Colors.primaryLight,
@@ -228,6 +190,7 @@ const styles = StyleSheet.create({
   },
   waveBar: {
     width: 3,
+    height: 24,
     borderRadius: 2,
   },
 });
