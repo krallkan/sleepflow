@@ -1,6 +1,8 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
+import { Strings } from '../constants/i18n';
 
 const TIMER_OPTIONS = [15, 30, 45, 60, 90, 120];
 
@@ -10,16 +12,20 @@ interface Props {
   onSelect: (minutes: number) => void;
   onClear: () => void;
   onClose: () => void;
+  t: Strings;
 }
 
-export default function TimerModal({ visible, activeMinutes, onSelect, onClear, onClose }: Props) {
+export default function TimerModal({ visible, activeMinutes, onSelect, onClear, onClose, t }: Props) {
+  const insets = useSafeAreaInsets();
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
+        <Pressable style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + 16, 32) }]}
+          onPress={e => e.stopPropagation()}>
           <View style={styles.handle} />
-          <Text style={styles.title}>Sleep Timer</Text>
-          <Text style={styles.subtitle}>Stop playing after...</Text>
+          <Text style={styles.title}>{t.timerTitle}</Text>
+          <Text style={styles.subtitle}>{t.timerSub}</Text>
 
           <View style={styles.grid}>
             {TIMER_OPTIONS.map(min => (
@@ -37,7 +43,7 @@ export default function TimerModal({ visible, activeMinutes, onSelect, onClear, 
 
           {activeMinutes && (
             <TouchableOpacity style={styles.clearBtn} onPress={() => { onClear(); onClose(); }}>
-              <Text style={styles.clearText}>Cancel Timer</Text>
+              <Text style={styles.clearText}>{t.cancelTimer}</Text>
             </TouchableOpacity>
           )}
         </Pressable>
@@ -49,18 +55,20 @@ export default function TimerModal({ visible, activeMinutes, onSelect, onClear, 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
   },
   sheet: {
     backgroundColor: Colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     padding: 24,
-    paddingBottom: 40,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: Colors.border,
   },
   handle: {
-    width: 40,
+    width: 36,
     height: 4,
     backgroundColor: Colors.border,
     borderRadius: 2,
@@ -81,20 +89,20 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
     marginBottom: 20,
   },
   option: {
     width: '30%',
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingVertical: 18,
+    borderRadius: 16,
     backgroundColor: Colors.surfaceElevated,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
   },
   optionActive: {
-    backgroundColor: Colors.primary + '33',
+    backgroundColor: Colors.primaryDim,
     borderColor: Colors.primary,
   },
   optionText: {
@@ -107,15 +115,15 @@ const styles = StyleSheet.create({
   },
   clearBtn: {
     padding: 16,
-    backgroundColor: Colors.error + '22',
-    borderRadius: 14,
+    backgroundColor: Colors.error + '18',
+    borderRadius: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.error + '44',
+    borderColor: Colors.error + '40',
   },
   clearText: {
     color: Colors.error,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

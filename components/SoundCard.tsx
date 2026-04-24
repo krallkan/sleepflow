@@ -1,5 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator, Animated } from 'react-native';
+import React, { useEffect } from 'react';
+import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle,
+  withRepeat, withSequence, withTiming, withSpring,
+  interpolate, Easing,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Sound } from '../constants/sounds';
 import { Colors } from '../constants/colors';
@@ -15,39 +20,91 @@ interface Props {
 
 export default function SoundCard({ sound, isActive, isLoading, isPremium, onPress, onPremiumPress }: Props) {
   const locked = sound.isPremium && !isPremium;
-  const pulse = useRef(new Animated.Value(1)).current;
-  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const scale = useSharedValue(1);
+  const glow = useSharedValue(0);
+  const waveA = useSharedValue(0);
+  const waveB = useSharedValue(0);
+  const waveC = useSharedValue(0);
+  const pressScale = useSharedValue(1);
 
   useEffect(() => {
     if (isActive) {
-      animRef.current = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulse, { toValue: 1.08, duration: 900, useNativeDriver: true }),
-          Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
-        ])
+      scale.value = withSpring(1.02, { damping: 12, stiffness: 120 });
+      glow.value = withTiming(1, { duration: 400 });
+      waveA.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 500, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0.3, { duration: 500, easing: Easing.inOut(Easing.sin) })
+        ), -1, true
       );
-      animRef.current.start();
+      waveB.value = withRepeat(
+        withSequence(
+          withTiming(0.4, { duration: 400, easing: Easing.inOut(Easing.sin) }),
+          withTiming(1, { duration: 600, easing: Easing.inOut(Easing.sin) })
+        ), -1, true
+      );
+      waveC.value = withRepeat(
+        withSequence(
+          withTiming(0.7, { duration: 700, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0.2, { duration: 500, easing: Easing.inOut(Easing.sin) })
+        ), -1, true
+      );
     } else {
-      animRef.current?.stop();
-      pulse.setValue(1);
+      scale.value = withSpring(1, { damping: 15 });
+      glow.value = withTiming(0, { duration: 300 });
+      waveA.value = withTiming(0, { duration: 300 });
+      waveB.value = withTiming(0, { duration: 300 });
+      waveC.value = withTiming(0, { duration: 300 });
     }
-    return () => { animRef.current?.stop(); };
-  }, [isActive, pulse]);
+  }, [isActive]);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value * pressScale.value }],
+  }));
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(glow.value, [0, 1], [0, 0.6]),
+  }));
+
+  const waveStyleA = useAnimatedStyle(() => ({
+    height: interpolate(waveA.value, [0, 1], [4, 18]),
+    opacity: interpolate(waveA.value, [0, 1], [0.3, 1]),
+  }));
+  const waveStyleB = useAnimatedStyle(() => ({
+    height: interpolate(waveB.value, [0, 1], [4, 26]),
+    opacity: interpolate(waveB.value, [0, 1], [0.3, 1]),
+  }));
+  const waveStyleC = useAnimatedStyle(() => ({
+    height: interpolate(waveC.value, [0, 1], [4, 14]),
+    opacity: interpolate(waveC.value, [0, 1], [0.3, 1]),
+  }));
+
+  const onPressIn = () => { pressScale.value = withSpring(0.96, { damping: 15 }); };
+  const onPressOut = () => { pressScale.value = withSpring(1, { damping: 15 }); };
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={locked ? onPremiumPress : onPress}
-      activeOpacity={0.8}
-    >
-      <Animated.View style={{ transform: [{ scale: pulse }] }}>
+    <Animated.View style={[styles.wrapper, containerStyle]}>
+      {/* Glow halo behind active card */}
+      <Animated.View style={[styles.glowHalo, { backgroundColor: sound.color }, glowStyle]} />
+
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={locked ? onPremiumPress : onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        activeOpacity={1}
+      >
         <LinearGradient
-          colors={isActive ? [sound.color + 'CC', sound.color + '55'] : [Colors.surface, Colors.surfaceElevated]}
+          colors={isActive
+            ? [sound.color + 'DD', sound.color + '55', Colors.surfaceElevated]
+            : [Colors.surfaceElevated, Colors.surface]}
           style={styles.card}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          {isActive && <View style={[styles.activeBorder, { borderColor: sound.color }]} />}
+          {isActive && (
+            <View style={[styles.activeBorder, { borderColor: sound.color + '99' }]} />
+          )}
 
           <Text style={styles.emoji}>{sound.emoji}</Text>
 
@@ -58,54 +115,72 @@ export default function SoundCard({ sound, isActive, isLoading, isPremium, onPre
 
           <View style={styles.right}>
             {locked ? (
-              <View style={styles.lockBadge}>
-                <Text style={styles.lockText}>PRO</Text>
+              <View style={[styles.lockBadge, { backgroundColor: Colors.goldDim, borderColor: Colors.gold + '60' }]}>
+                <Text style={[styles.lockText, { color: Colors.gold }]}>PRO</Text>
               </View>
-            ) : isLoading && isActive ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : isLoading ? (
+              <ActivityIndicator size="small" color={sound.color} />
+            ) : isActive ? (
+              <View style={styles.waveform}>
+                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleA]} />
+                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleB]} />
+                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleC]} />
+                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleB]} />
+                <Animated.View style={[styles.waveBar, { backgroundColor: sound.color }, waveStyleA]} />
+              </View>
             ) : (
-              <View style={[styles.playBtn, isActive && { backgroundColor: sound.color }]}>
-                <Text style={styles.playIcon}>{isActive ? '■' : '▶'}</Text>
+              <View style={[styles.playBtn, { backgroundColor: Colors.primaryDim, borderColor: Colors.borderLight }]}>
+                <Text style={styles.playIcon}>▶</Text>
               </View>
             )}
           </View>
         </LinearGradient>
-      </Animated.View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     marginHorizontal: 16,
-    marginVertical: 6,
-    borderRadius: 16,
+    marginVertical: 5,
+    borderRadius: 18,
+  },
+  glowHalo: {
+    position: 'absolute',
+    top: 4, left: 4, right: 4, bottom: -6,
+    borderRadius: 18,
+    opacity: 0,
+    filter: 'blur(12px)',
+  },
+  touchable: {
+    borderRadius: 18,
     overflow: 'hidden',
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
     position: 'relative',
   },
   activeBorder: {
     position: 'absolute',
     top: 0, right: 0, bottom: 0, left: 0,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1.5,
   },
   emoji: {
-    fontSize: 32,
-    marginRight: 14,
-    width: 42,
+    fontSize: 30,
+    marginRight: 12,
+    width: 40,
     textAlign: 'center',
   },
-  info: {
-    flex: 1,
-  },
+  info: { flex: 1 },
   name: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: Colors.text,
     marginBottom: 3,
@@ -115,32 +190,44 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   right: {
-    marginLeft: 12,
+    marginLeft: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 44,
   },
   lockBadge: {
-    backgroundColor: Colors.gold + '33',
-    borderColor: Colors.gold,
-    borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    borderWidth: 1,
   },
   lockText: {
-    color: Colors.gold,
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   playBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.primary + '33',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
   playIcon: {
-    color: Colors.text,
-    fontSize: 12,
-    fontWeight: '700',
+    color: Colors.primaryLight,
+    fontSize: 11,
+    marginLeft: 2,
+  },
+  waveform: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    height: 30,
+    paddingHorizontal: 4,
+  },
+  waveBar: {
+    width: 3,
+    borderRadius: 2,
   },
 });

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../constants/colors';
+import { Strings } from '../constants/i18n';
 
 const TODAY_KEY = () => `sleep_minutes_${new Date().toISOString().slice(0, 10)}`;
 
@@ -24,7 +25,9 @@ export function useSessionTracker(isPlaying: boolean) {
   }, [isPlaying]);
 }
 
-export default function StatsBar() {
+interface Props { t: Strings; }
+
+export default function StatsBar({ t }: Props) {
   const [mins, setMins] = useState(0);
 
   useEffect(() => {
@@ -44,7 +47,9 @@ export default function StatsBar() {
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>🌙</Text>
-      <Text style={styles.text}>Today's sleep session: <Text style={styles.value}>{label}</Text></Text>
+      <Text style={styles.text}>
+        {t.todaySession} <Text style={styles.value}>{label}</Text>
+      </Text>
     </View>
   );
 }
@@ -53,15 +58,17 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
     backgroundColor: Colors.surfaceElevated,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 10,
     gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  icon: { fontSize: 16 },
+  icon: { fontSize: 14 },
   text: { fontSize: 13, color: Colors.textSecondary },
-  value: { color: Colors.primary, fontWeight: '700' },
+  value: { color: Colors.accent, fontWeight: '700' },
 });
