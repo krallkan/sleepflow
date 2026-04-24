@@ -21,6 +21,7 @@
         "backgroundColor": "#0d1117"
       },
       "package": "com.sleepflow.app",
+      "versionCode": 1,
       "permissions": [
         "android.permission.WAKE_LOCK",
         "android.permission.FOREGROUND_SERVICE",

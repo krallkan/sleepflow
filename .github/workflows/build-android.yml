@@ -42,14 +42,15 @@ jobs:
           EXPO_NO_TELEMETRY: 1
 
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/sleepflow-release.keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '[:space:]' | base64 -d > ${{ github.workspace }}/android/app/sleepflow-release.keystore
 
       - name: Build Release APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon \
-            -Pandroid.injected.signing.store.file=sleepflow-release.keystore \
+            -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/sleepflow-release.keystore \
             -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
             -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
             -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
@@ -60,7 +61,7 @@ jobs:
         run: |
           cd android
           ./gradlew bundleRelease --no-daemon \
-            -Pandroid.injected.signing.store.file=sleepflow-release.keystore \
+            -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/sleepflow-release.keystore \
             -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
             -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
             -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
