@@ -5,10 +5,9 @@ import {
   TestIds,
 } from 'react-native-google-mobile-ads';
 
-// Replace with real Ad Unit IDs after AdMob approval
 const INTERSTITIAL_ID = __DEV__
   ? TestIds.INTERSTITIAL
-  : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+  : 'ca-app-pub-5933378571335845/5369405034';
 
 export function useInterstitialAd(isPremium: boolean) {
   const adRef = useRef<InterstitialAd | null>(null);
@@ -45,7 +44,6 @@ export function useInterstitialAd(isPremium: boolean) {
   return { maybeShowAd };
 }
 
-// Banner Ad Unit ID export — used directly in component
 export const BANNER_AD_ID = __DEV__
   ? TestIds.BANNER
-  : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+  : 'ca-app-pub-5933378571335845/8741673831';
