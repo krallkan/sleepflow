@@ -4,12 +4,12 @@ import { Platform, Alert } from 'react-native';
 import {
   initConnection,
   endConnection,
-  requestPurchase,
+  requestSubscription,
   purchaseUpdatedListener,
   purchaseErrorListener,
   finishTransaction,
   getAvailablePurchases,
-  type Purchase,
+  type SubscriptionPurchase,
 } from 'react-native-iap';
 
 const PREMIUM_KEY = 'sleepflow_premium';
@@ -35,8 +35,8 @@ export function usePremium() {
       .then(() => setConnected(true))
       .catch(() => {});
 
-    const purchaseListener = purchaseUpdatedListener(async (purchase: Purchase) => {
-      if (purchase.transactionId) {
+    const purchaseListener = purchaseUpdatedListener(async (purchase: SubscriptionPurchase) => {
+      if (purchase.transactionReceipt) {
         await finishTransaction({ purchase, isConsumable: false });
         await AsyncStorage.setItem(PREMIUM_KEY, 'true');
         setIsPremium(true);
@@ -63,12 +63,7 @@ export function usePremium() {
     }
     try {
       setIsLoading(true);
-      await requestPurchase({
-        type: 'subs',
-        request: {
-          google: { skus: [sku] },
-        },
-      });
+      await requestSubscription({ sku });
       return true;
     } catch (e: any) {
       if (e.code !== 'E_USER_CANCELLED') {
