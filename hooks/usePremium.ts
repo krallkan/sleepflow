@@ -5,16 +5,20 @@ import { Linking, Alert } from 'react-native';
 const PREMIUM_KEY = 'sleepflow_premium';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.sleepflow.app';
 
+// TEST MODU: true iken tüm pro özellikler açık, mağazaya yüklemeden önce false yap
+const TEST_MODE = true;
+
 export const IAP_SKUS = {
   monthly: 'sleepflow_pro_monthly',
   yearly: 'sleepflow_pro_yearly',
 };
 
 export function usePremium() {
-  const [isPremium, setIsPremium] = useState(false);
+  const [isPremium, setIsPremium] = useState(TEST_MODE);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    if (TEST_MODE) return;
     AsyncStorage.getItem(PREMIUM_KEY).then(v => {
       if (v === 'true') setIsPremium(true);
     });

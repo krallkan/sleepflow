@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import { ActiveTrack } from '../hooks/useAudioPlayer';
 import { Colors } from '../constants/colors';
@@ -13,8 +14,9 @@ interface Props {
 }
 
 export default function PlayerBar({ tracks, timerLabel, onStop, onTimerPress, onVolumeChange }: Props) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}>
       <View style={styles.topRow}>
         <View style={styles.nowPlayingCol}>
           <Text style={styles.nowPlaying}>Now Playing</Text>
@@ -58,7 +60,6 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 16,
     gap: 8,
   },
   topRow: {

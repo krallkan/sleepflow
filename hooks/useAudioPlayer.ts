@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Audio } from 'expo-av';
 import { Sound } from '../constants/sounds';
 
@@ -11,16 +11,19 @@ export interface ActiveTrack {
 export function useAudioPlayer() {
   const [tracks, setTracks] = useState<ActiveTrack[]>([]);
   const soundRefs = useRef<Record<string, Audio.Sound>>({});
+  const audioReady = useRef(false);
 
   const isPlaying = tracks.length > 0;
 
-  const setupAudio = useCallback(async () => {
-    await Audio.setAudioModeAsync({
+  useEffect(() => {
+    Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
       playsInSilentModeIOS: true,
       staysActiveInBackground: true,
       shouldDuckAndroid: false,
-    });
+    }).then(() => {
+      audioReady.current = true;
+    }).catch(console.error);
   }, []);
 
   const isActive = useCallback((soundId: string) => {
@@ -31,24 +34,26 @@ export function useAudioPlayer() {
     return tracks.find(t => t.sound.id === soundId)?.isLoading ?? false;
   }, [tracks]);
 
+  const stopSound = useCallback(async (soundId: string) => {
+    if (soundRefs.current[soundId]) {
+      await soundRefs.current[soundId].stopAsync().catch(() => {});
+      await soundRefs.current[soundId].unloadAsync().catch(() => {});
+      delete soundRefs.current[soundId];
+    }
+  }, []);
+
   const toggleSound = useCallback(async (sound: Sound, isPremium: boolean) => {
     // If already playing — stop it
     if (soundRefs.current[sound.id]) {
-      await soundRefs.current[sound.id].stopAsync();
-      await soundRefs.current[sound.id].unloadAsync();
-      delete soundRefs.current[sound.id];
+      await stopSound(sound.id);
       setTracks(prev => prev.filter(t => t.sound.id !== sound.id));
       return;
     }
 
-    // Free users: max 1 sound
+    // Free users: max 1 sound — stop the existing one first
     if (!isPremium && tracks.length >= 1) {
-      const existing = tracks[0];
-      if (soundRefs.current[existing.sound.id]) {
-        await soundRefs.current[existing.sound.id].stopAsync();
-        await soundRefs.current[existing.sound.id].unloadAsync();
-        delete soundRefs.current[existing.sound.id];
-      }
+      const existingId = tracks[0].sound.id;
+      await stopSound(existingId);
       setTracks([]);
     }
 
@@ -59,7 +64,6 @@ export function useAudioPlayer() {
     setTracks(prev => [...prev, { sound, volume: 0.8, isLoading: true }]);
 
     try {
-      await setupAudio();
       const { sound: audioSound } = await Audio.Sound.createAsync(
         sound.asset,
         { shouldPlay: true, isLooping: true, volume: 0.8 }
@@ -72,16 +76,14 @@ export function useAudioPlayer() {
       console.error('Audio load error:', e);
       setTracks(prev => prev.filter(t => t.sound.id !== sound.id));
     }
-  }, [tracks, setupAudio]);
+  }, [tracks, stopSound]);
 
   const stopAll = useCallback(async () => {
-    for (const ref of Object.values(soundRefs.current)) {
-      await ref.stopAsync().catch(() => {});
-      await ref.unloadAsync().catch(() => {});
+    for (const id of Object.keys(soundRefs.current)) {
+      await stopSound(id);
     }
-    soundRefs.current = {};
     setTracks([]);
-  }, []);
+  }, [stopSound]);
 
   const setTrackVolume = useCallback(async (soundId: string, volume: number) => {
     if (soundRefs.current[soundId]) {

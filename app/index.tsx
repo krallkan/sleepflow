@@ -73,7 +73,7 @@ export default function HomeScreen() {
         end={{ x: 0.5, y: 0.4 }}
       />
 
-      <View style={[styles.safe, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={[styles.safe, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <View>
             <Text style={styles.appName}>SleepFlow</Text>
@@ -164,7 +164,7 @@ export default function HomeScreen() {
             </View>
           )}
 
-          <View style={{ height: 20 }} />
+          <View style={{ height: isPlaying ? 120 : 20 }} />
         </ScrollView>
 
         {isPlaying && (
