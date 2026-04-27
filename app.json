@@ -13,14 +13,14 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.sleepflow.app"
+      "bundleIdentifier": "com.sleepflow.white.noise"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0d1117"
       },
-      "package": "com.sleepflow.app",
+      "package": "com.sleepflow.white.noise",
       "versionCode": 1,
       "permissions": [
         "android.permission.WAKE_LOCK",

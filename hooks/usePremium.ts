@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Alert } from 'react-native';
 
 const PREMIUM_KEY = 'sleepflow_premium';
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.sleepflow.app';
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.sleepflow.white.noise';
 
 const TEST_MODE = false;
 
