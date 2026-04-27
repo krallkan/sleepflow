@@ -21,7 +21,7 @@
         "backgroundColor": "#0d1117"
       },
       "package": "com.sleepflow.white.noise",
-      "versionCode": 1,
+      "versionCode": 2,
       "permissions": [
         "android.permission.WAKE_LOCK",
         "android.permission.FOREGROUND_SERVICE",
