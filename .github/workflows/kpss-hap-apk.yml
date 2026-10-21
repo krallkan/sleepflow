@@ -18,21 +18,22 @@ jobs:
       run:
         working-directory: kpss-hap
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-
       - name: Pick newest stable platform
         id: sdk
         run: |
-          API=$(sdkmanager --list 2>/dev/null | grep -oE 'platforms;android-[0-9]+ ' | grep -oE '[0-9]+' | sort -n | tail -1)
+          # ubuntu-latest ships the Android SDK; use its cmdline-tools directly.
+          SDKM=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin | sort -V | tail -1)/sdkmanager
+          yes | "$SDKM" --licenses > /dev/null || true
+          API=$("$SDKM" --list 2>/dev/null | grep -oE 'platforms;android-[0-9]+ ' | grep -oE '[0-9]+' | sort -n | tail -1)
           echo "Newest stable platform: android-$API"
-          sdkmanager --install "platforms;android-$API" > /dev/null
+          "$SDKM" --install "platforms;android-$API" > /dev/null
           echo "api=$API" >> "$GITHUB_OUTPUT"
 
       - name: Build debug and release APKs
