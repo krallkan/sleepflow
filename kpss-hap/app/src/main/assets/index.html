@@ -44,7 +44,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .brand b{font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:-.01em;line-height:1.1}
 .brand small{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.04em}
 .seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;flex-shrink:0}
-.seg button{border:0;background:transparent;color:var(--muted);font:600 13px var(--f-body);padding:7px 12px;border-radius:999px;cursor:pointer}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px var(--f-body);padding:7px 10px;border-radius:999px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;flex-shrink:0}
 .chips::-webkit-scrollbar{display:none}
@@ -94,6 +94,9 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .score{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 .score b{color:var(--ok)} .score em{color:var(--bad);font-style:normal;font-weight:700}
+.tg{font-family:var(--f-mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:3px 7px;border-radius:6px;white-space:nowrap}
+.tg-cok{background:var(--bad-bg);color:var(--bad)} .tg-cikti{background:var(--ok-bg);color:var(--ok)} .tg-cikar{background:var(--accent);color:var(--accent-ink)}
+.q.long{font-family:var(--f-body);font-weight:500;font-size:16.5px;line-height:1.5;text-wrap:pretty}
 @media (prefers-reduced-motion: reduce){.card{transition:none}}
 </style>
 </head>
@@ -105,6 +108,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
     <div class="seg" role="group" aria-label="Çalışma modu">
       <button id="mCard" aria-pressed="true">Kart</button>
       <button id="mTest" aria-pressed="false">Test</button>
+      <button id="mExam" aria-pressed="false">Sınav</button>
     </div>
   </header>
   <nav class="chips" id="chips" aria-label="Ders filtresi"></nav>
@@ -297,28 +301,135 @@ const RAW = [
 ["G","Türkiye 2026",0,"2026–2035 dönemi Türkiye'de nasıl ilan edildi?","«Aile ve Nüfus On Yılı»","Doğurganlık hızının düşmesi üzerine aileyi ve nüfus artışını destekleme hedefiyle ilan edildi. 2025 yılı «Aile Yılı» idi.","Doğurganlık hızı → yenileme düzeyi 2,1'in altında"]
 ];
 
+/* Sınav soruları: [ders, konu, etiket (CIKTI|COK|CIKAR), soru, şıklar ("|" ile; doğru olan İLK sırada yazılır, uygulama karıştırır), açıklama, (isteğe bağlı) sabit sıralı şıklarda doğru şıkkın sırası] */
+const SRAW = [
+/* ================= TÜRKÇE ================= */
+["T","Yazım","COK","Aşağıdaki cümlelerin hangisinde yazım yanlışı vardır?","Bu kitabı bir kaç kez okudum.|Yarın sabah erkenden yola çıkacağız.|Her şey yolunda gidiyor gibi görünüyor.|Hiçbir zaman umudunu kaybetmedi.|Akşamüstü parkta yürüyüş yaptık.","«Birkaç» bitişik yazılır. «Her şey» ve «bir şey» ayrı; «hiçbir», «birçok», «birkaç» bitişik yazılır."],
+["T","Noktalama","COK","Aşağıdaki cümlelerin hangisinde kesme işaretinin kullanımı yanlıştır?","Türk Dil Kurumu'nun yayınlarını inceledik.|Ankara'ya akşam vardık.|2026'da sınava gireceğim.|Yunus Emre'nin şiirlerini okudu.|TBMM'nin açılışı 23 Nisan 1920'dedir.","Kurum, kuruluş ve kurul adlarına gelen ekler kesme işaretiyle ayrılmaz: «Türk Dil Kurumunun». Özel adlar, sayılar ve kısaltmalara gelen ekler ise kesmeyle ayrılır."],
+["T","Ses Bilgisi","COK","Aşağıdaki sözcüklerin hangisinde ünsüz yumuşaması vardır?","ağacı|kitapçı|sütçü|kaşık|yolcu","«Ağaç + ı → ağacı»: sözcük sonundaki ç, ünlüyle başlayan ek alınca c'ye dönüşmüştür. «Kitapçı, sütçü»de ünsüz benzeşmesi (sertleşme) vardır."],
+["T","Ses Bilgisi","CIKTI","Aşağıdaki sözcüklerin hangisinde ünlü düşmesi vardır?","burnu|kapısı|okulu|evi|kalemi","«Burun + u → burnu»: ikinci hecedeki dar ünlü (u) düşmüştür. Benzerleri: ağız → ağzı, oğul → oğlu, alın → alnı."],
+["T","Sözcükte Anlam","COK","Aşağıdaki cümlelerin hangisinde «ağır» sözcüğü mecaz anlamda kullanılmıştır?","Bu sözler ona çok ağır geldi.|Bu bavul çok ağır, kaldıramıyorum.|Ağır taşları kamyona yüklediler.|Masa ağır olduğu için iki kişi taşıdık.|Ağır demir kapıyı zorlukla açtı.","Sözlerin ağırlığı ölçülemez; burada «ağır» «incitici, kırıcı» anlamında mecazdır. Diğerlerinde fiziksel ağırlık (gerçek anlam) vardır."],
+["T","Cümlede Anlam","COK","Aşağıdaki cümlelerin hangisinde neden-sonuç ilişkisi vardır?","Yağmur yağdığı için maç ertelendi.|Erken kalkmak amacıyla saati kurdu.|Kitabı okursan konuyu anlarsın.|Çok çalışmasına rağmen başaramadı.|Ankara, İstanbul'dan daha sakin bir şehirdir.","Yağmurun yağması (neden) maçın ertelenmesine (sonuç) yol açmıştır. Diğerleri sırasıyla amaç-sonuç, koşul, karşıtlık ve karşılaştırmadır."],
+["T","Cümlede Anlam","CIKAR","Aşağıdaki cümlelerin hangisinde amaç-sonuç ilişkisi vardır?","Sınavı kazanmak için gece gündüz çalıştı.|Hasta olduğu için okula gelmedi.|Kar yağınca yollar kapandı.|Çok yorulduğundan erkenden uyudu.|Hava soğuk olduğu için mont giydi.","Amaç-sonuçta eylem bir hedefe ulaşmak için yapılır (sınavı kazanmak). «Hasta olduğu için» gibi gerçekleşmiş bir durum ise nedendir. Pratik test: «için» yerine «amacıyla» konabiliyorsa amaçtır."],
+["T","Paragraf","COK","Okumak, yalnızca bilgi edinmenin değil, düşünmeyi öğrenmenin de yoludur. Okuyan insan, başkalarının deneyimlerinden yararlanarak kendi yargılarını oluşturur; olaylara tek bir pencereden bakmaktan kurtulur. Bu nedenle okuma alışkanlığı, bireyin eleştirel düşünme becerisini geliştiren en önemli etkenlerden biridir.\n\nBu parçada asıl anlatılmak istenen aşağıdakilerden hangisidir?","Okuma alışkanlığı, eleştirel düşünmeyi geliştirir.|Bilgi edinmenin tek yolu okumaktır.|Başkalarının deneyimleri her zaman doğrudur.|Okuma alışkanlığı küçük yaşta kazanılmalıdır.|İnsanlar olaylara tek açıdan bakmalıdır.","Ana düşünce çoğunlukla son cümlede, «bu nedenle» gibi sonuç bildiren ifadeden sonra gelir. B şıkkı parçayla çelişir («yalnızca bilgi edinmenin değil»), D şıkkından hiç söz edilmemiştir."],
+["T","Paragraf","COK","Bal arıları, bir kilogram bal üretmek için milyonlarca çiçeği ziyaret eder. Kovandaki her arının belirli bir görevi vardır: Kimi nektar toplar, kimi kovanı temizler, kimi de kraliçeyi besler. Arılar, buldukları çiçeğin yerini diğer arılara özel bir dansla anlatır. Ayrıca bitkilerin tozlaşmasını sağlayarak tarıma büyük katkı sunarlar.\n\nBu parçada bal arılarıyla ilgili aşağıdakilerden hangisine değinilmemiştir?","Ortalama ne kadar yaşadıklarına|Kovanda görev paylaşımı yaptıklarına|Tarıma katkı sağladıklarına|Birbirleriyle iletişim kurduklarına|Bal üretmek için çok sayıda çiçeği dolaştıklarına","«Değinilmemiştir» sorularında her şıkkı parçada ara: görev paylaşımı (2. cümle), iletişim/dans (3. cümle), tarıma katkı (4. cümle), çok sayıda çiçek (1. cümle). Yaşam süresinden söz edilmemiştir."],
+["T","Paragraf","CIKTI","(I) Kış aylarında havanın soğumasıyla birlikte enerji tüketimi artar. (II) Evlerde ısınma için daha fazla doğal gaz ve elektrik kullanılır. (III) Bu durum aile bütçesine ek yük getirir. (IV) Kış turizmi de son yıllarda giderek gelişmektedir. (V) Bu nedenle uzmanlar, evlerde ısı yalıtımı yapılmasını önermektedir.\n\nBu parçada numaralanmış cümlelerden hangisi düşüncenin akışını bozmaktadır?","I|II|III|IV|V","Parça kışın artan enerji tüketimini ve çözüm önerisini anlatıyor. IV. cümle konuyu kış turizmine kaydırarak akışı bozuyor. V. cümledeki «bu nedenle» III. cümleye bağlanır.",3],
+["T","Fiilimsi","COK","Aşağıdaki cümlelerin hangisinde zarf-fiil (bağ-fiil) kullanılmıştır?","Koşarak eve geldi.|Okunacak kitapları ayırdı.|Yüzmeyi çok sever.|Gelen misafirleri karşıladı.|Bu kalem artık yazmıyor.","«-arak» zarf-fiil ekidir. «Okunacak, gelen»: sıfat-fiil; «yüzme»: isim-fiil; «yazmıyor»: çekimli fiildir (fiilimsi değil)."],
+["T","Fiilimsi","CIKAR","Aşağıdaki cümlelerin hangisinde isim-fiil kullanılmıştır?","Okumak en büyük zevkidir.|Gülerek odaya girdi.|Eve gelince annesini aradı.|Bilinen yollardan gitti.|Kırık camı değiştirdi.","İsim-fiil ekleri: -ma, -ış, -mak. «Okumak» isim-fiildir. «Gülerek, gelince» zarf-fiil; «bilinen» sıfat-fiildir. «Kırık» kalıcı ad olmuş bir sözcüktür, fiilimsi sayılmaz."],
+["T","Cümlenin Ögeleri","CIKTI","«Dün akşam arkadaşlarımla sinemaya gittik.» cümlesinin ögeleri sırasıyla aşağıdakilerden hangisidir?","Zarf tümleci – zarf tümleci – dolaylı tümleç – yüklem|Özne – zarf tümleci – dolaylı tümleç – yüklem|Zarf tümleci – dolaylı tümleç – dolaylı tümleç – yüklem|Özne – nesne – dolaylı tümleç – yüklem|Zarf tümleci – nesne – zarf tümleci – yüklem","«Dün akşam» (ne zaman?) ve «arkadaşlarımla» (kiminle?) zarf tümleci, «sinemaya» (nereye?) dolaylı tümleç, «gittik» yüklemdir. Özne gizlidir (biz)."],
+["T","Anlatım Bozukluğu","COK","Aşağıdaki cümlelerin hangisinde gereksiz sözcük kullanımından kaynaklanan bir anlatım bozukluğu vardır?","Toplantıya yaklaşık on kişi kadar katıldı.|Toplantı saat dokuzda başladı.|Kitabı bir haftada bitirdi.|Sabah erkenden yola çıktık.|Bu konuda herkes aynı fikirde.","«Yaklaşık» ve «kadar» aynı anlamı (tahmin) verir; biri gereksizdir. Benzerleri: «geri iade», «karşılıklı diyalog», «en son nihai»."],
+["T","Anlatım Bozukluğu","CIKAR","Aşağıdaki cümlelerin hangisinde bir sözcüğün yanlış anlamda kullanılmasından kaynaklanan anlatım bozukluğu vardır?","Bu mağazada fiyatlar çok pahalı.|Sınavda başarılı olmak için düzenli çalışmalısın.|Yeni evleri şehrin dışındaydı.|Toplantı ertesi güne ertelendi.|Kitabın yazarı bu yıl ödül aldı.","Fiyat pahalı ya da ucuz olmaz; «yüksek» ya da «düşük» olur. Pahalı/ucuz olan maldır: «Bu mağazada ürünler çok pahalı.»"],
+["T","Yapı Bilgisi","COK","Aşağıdaki sözcüklerden hangisi yapıca birleşiktir?","hanımeli|gözlük|kitaplık|yolcu|sevgi","«Hanımeli» iki sözcüğün birleşmesiyle oluşmuş bir bitki adıdır (birleşik). Diğerleri kök + yapım eki: göz-lük, kitap-lık, yol-cu, sev-gi (türemiş)."],
+["T","Yapı Bilgisi","CIKTI","«Öğretmenlik» sözcüğündeki «-men» ve «-lik» ekleri için aşağıdakilerden hangisi doğrudur?","İkisi de yapım ekidir.|İkisi de çekim ekidir.|«-men» yapım, «-lik» çekim ekidir.|«-men» çekim, «-lik» yapım ekidir.|«-lik» ek değil, sözcüğün köküdür.","Yapım eki sözcüğe yeni anlam kazandırır: öğret → öğretmen (kişi) → öğretmenlik (meslek). Çekim ekleri (-ler, -i, -de, -den...) anlamı değiştirmez."],
+["T","Sözcük Türleri","CIKAR","Aşağıdaki cümlelerin hangisinde «güzel» sözcüğü zarf olarak kullanılmıştır?","Güzel konuştu, herkes onu dinledi.|Güzel bir gün geçirdik.|Bu güzel ev satılık.|Güzeli herkes sever.|Güzeller güzeli bir kızdı.","Zarf fiili niteler: «nasıl konuştu? → güzel». A ve C'de adı nitelediği için sıfat; «güzeli, güzeller»de ad çekim eki aldığı için addır."],
+["T","Sözcükte Anlam","COK","Aşağıdaki sözcük çiftlerinden hangisi eş anlamlı değildir?","ileri – geri|yanıt – cevap|özgür – hür|siyah – kara|okul – mektep","«İleri – geri» karşıt (zıt) anlamlıdır. Diğer çiftler aynı anlamı taşır."],
+["T","Deyim","CIKTI","«Ağzı kulaklarına varmak» deyiminin anlamı aşağıdakilerden hangisidir?","Çok sevinmek|Çok konuşmak|Sır saklayamamak|Şaşırıp kalmak|Çok öfkelenmek","Sevinçten yüzünü kaplayan geniş gülümsemeyi anlatır. «Ağzı sıkı» sır saklayan, «ağzında bakla ıslanmamak» sır saklayamamaktır."],
+["T","Noktalama","CIKAR","Aşağıdaki cümlelerin hangisinde virgül, eş görevli sözcükleri ayırmak için kullanılmıştır?","Pazardan elma, armut, ayva aldık.|Evet, yarın geliyorum.|Ahmet, buraya gel.|Kitabı okudu, çok beğendi.|Ali, Ayşe'yi aradı.","Eş görevli sözcükler (elma, armut, ayva) virgülle ayrılır. B: cevap sözcüğünden sonra, C: hitaptan sonra, D: sıralı cümleleri ayırmak için, E: özneyi belirtmek için kullanılmıştır."],
+/* ================= TARİH ================= */
+["H","İslamiyet Öncesi","COK","İslamiyet öncesi Türk devletlerinde ülkenin hükümdar ailesinin ortak malı sayılması aşağıdakilerden hangisine yol açmıştır?","Devletlerin kısa sürede bölünüp yıkılmasına|Merkezî otoritenin güçlenmesine|Yazının icat edilmesine|Yerleşik hayata geçilmesine|Hukukun dinî kurallara dayanmasına","Kut anlayışı ve ülkenin hanedanın ortak malı sayılması, taht kavgalarına ve devletlerin parçalanmasına neden olmuştur."],
+["H","İslamiyet Öncesi","CIKTI","«Türk» adını resmî devlet adı olarak ilk kullanan devlet hangisidir?","Göktürkler|Asya Hun Devleti|Uygurlar|Avarlar|Hazarlar","Türk adı ilk kez Göktürklerde devlet adı oldu. İlk Türk alfabesi ve Türkçe yazılı belgeler (Orhun Yazıtları) de Göktürklere aittir."],
+["H","İslamiyet Öncesi","COK","Yerleşik hayata geçen ilk Türk topluluğu aşağıdakilerden hangisidir?","Uygurlar|Göktürkler|Asya Hunları|Avarlar|Kırgızlar","Uygurlar Maniheizm'i benimseyip yerleşik hayata geçtiler; tarım, mimari, matbaa ve kâğıt kullanımında ileri gittiler."],
+["H","İslamiyet Öncesi","CIKAR","Orhun Yazıtları hangi Türk devleti döneminde dikilmiştir?","II. Göktürk (Kutluk) Devleti|I. Göktürk Devleti|Uygur Devleti|Asya Hun Devleti|Türgişler","Yazıtlar Kül Tigin, Bilge Kağan ve Tonyukuk adına II. Göktürk Devleti döneminde dikildi. Türk adının geçtiği ilk Türkçe yazılı belgelerdir."],
+["H","Türk-İslam","COK","751 Talas Savaşı hangi taraflar arasında yapılmıştır?","Abbasiler (Karlukların desteğiyle) – Çin|Emeviler – Bizans|Göktürkler – Çin|Selçuklular – Bizans|Abbasiler – Bizans","Karlukların Abbasileri desteklemesiyle Çin yenildi. Sonuç: Türkler arasında İslamiyet yayılmaya başladı, kâğıt yapımı İslam dünyasına geçti."],
+["H","Türk-İslam","COK","İlk Müslüman Türk devleti aşağıdakilerden hangisidir?","Karahanlılar|Gazneliler|Tolunoğulları|İhşidiler|Büyük Selçuklu Devleti","Karahanlılar, Satuk Buğra Han döneminde İslamiyet'i kabul etti. İlk Türkçe İslami eserler (Kutadgu Bilig, Divan-ı Lügati't-Türk) bu dönemdedir."],
+["H","Türk-İslam","CIKTI","1071 Malazgirt Savaşı'nın en önemli sonucu aşağıdakilerden hangisidir?","Anadolu'nun kapılarının Türklere açılması|Haçlı Seferleri'nin sona ermesi|Bizans İmparatorluğu'nun yıkılması|Anadolu Selçuklu Devleti'nin yıkılması|İstanbul'un fethedilmesi","Sultan Alparslan'ın Bizans'ı yenmesiyle Anadolu'nun kapıları Türklere açıldı. 2026, Malazgirt'in 955. yılıdır."],
+["H","Türk-İslam","COK","1176 Miryokefalon Savaşı ile ilgili aşağıdakilerden hangisi doğrudur?","Anadolu'nun kesin Türk yurdu olduğu kanıtlandı.|Anadolu'nun kapıları Türklere açıldı.|Anadolu'da Moğol egemenliği başladı.|Birinci Haçlı Seferi başladı.|İstanbul Türklerin eline geçti.","II. Kılıç Arslan Bizans'ı yendi; Bizans Anadolu'yu geri alma ümidini kaybetti. Kapıların açılması Malazgirt (1071), Moğol egemenliği Kösedağ (1243)."],
+["H","Türk-İslam","CIKAR","1243 Kösedağ Savaşı'nın sonucu aşağıdakilerden hangisidir?","Anadolu Selçuklu Devleti Moğol egemenliğine girdi.|Anadolu kesin Türk yurdu oldu.|Haçlılar Kudüs'ü ele geçirdi.|Osmanlı Beyliği kuruldu.|Bizans, Anadolu'dan tamamen çekildi.","Moğollara yenilen Anadolu Selçuklu Devleti zayıfladı; Anadolu'da siyasi birlik bozuldu ve II. Beylikler Dönemi başladı."],
+["H","Osmanlı Kuruluş","COK","Osmanlı'da ilk düzenli ordu (yaya ve müsellem) hangi hükümdar döneminde kurulmuştur?","Orhan Bey|Osman Bey|I. Murat|Yıldırım Bayezid|Çelebi Mehmet","Orhan Bey döneminde ilk düzenli ordu kuruldu, ilk Osmanlı parası basıldı, ilk medrese (İznik, 1331) açıldı ve Bursa fethedilerek başkent yapıldı."],
+["H","Osmanlı Kuruluş","CIKTI","Devşirme sistemi ve Yeniçeri Ocağı hangi padişah döneminde kurulmuştur?","I. Murat|Orhan Bey|Yıldırım Bayezid|II. Murat|Fatih Sultan Mehmet","I. Murat döneminde pençik sistemi, devşirme ve Yeniçeri Ocağı kuruldu; Edirne alınarak başkent yapıldı."],
+["H","Osmanlı Yükselme","COK","İstanbul'un fethinin (1453) dünya tarihi açısından en önemli sonucu aşağıdakilerden hangisidir?","Orta Çağ'ın kapanıp Yeni Çağ'ın başlaması|Osmanlı başkentinin Bursa olması|Kapitülasyonların kaldırılması|Halifeliğin Osmanlılara geçmesi|Coğrafi Keşiflerin sona ermesi","Fetih, Bizans'ı sona erdirdi ve Orta Çağ'ı kapatıp Yeni Çağ'ı başlattı. Halifelik Yavuz döneminde (1517) geçti."],
+["H","Osmanlı Yükselme","CIKTI","Halifeliğin Osmanlı Devleti'ne geçmesi hangi seferin sonucudur?","Yavuz Sultan Selim'in Mısır Seferi|Kanuni'nin Mohaç Seferi|Fatih'in İstanbul'u fethi|II. Selim'in Kıbrıs Seferi|Yıldırım Bayezid'in Niğbolu Seferi","Ridaniye Savaşı (1517) ile Memlükler yıkıldı, halifelik Osmanlılara geçti, kutsal emanetler İstanbul'a getirildi."],
+["H","Osmanlı Yükselme","COK","Osmanlı Devleti Fransa'ya ilk kez kapitülasyon hangi padişah döneminde vermiştir?","Kanuni Sultan Süleyman|Fatih Sultan Mehmet|Yavuz Sultan Selim|II. Selim|IV. Murat","1535'te Kanuni döneminde verildi. Amaç Avrupa'da Hristiyan birliğini bozmak ve Fransa'yı desteklemekti; başlangıçta karşılıklı ve padişahın ömrüyle sınırlıydı."],
+["H","Osmanlı Gerileme","CIKAR","Osmanlı Devleti'nin ilk kez büyük çapta toprak kaybettiği antlaşma hangisidir?","Karlofça Antlaşması (1699)|Zitvatorok Antlaşması (1606)|Pasarofça Antlaşması (1718)|Küçük Kaynarca Antlaşması (1774)|Vasvar Antlaşması (1664)","II. Viyana Kuşatması'nın başarısızlığı sonrası imzalanan Karlofça ile Osmanlı ilk büyük toprak kaybını yaşadı; Gerileme Dönemi başladı."],
+["H","Osmanlı Gerileme","COK","1774 Küçük Kaynarca Antlaşması'nın önemli sonuçlarından biri aşağıdakilerden hangisidir?","Kırım'ın Osmanlı'dan ayrılarak bağımsız olması|Yunanistan'ın bağımsızlığını kazanması|Mısır'ın Osmanlı'dan ayrılması|Boğazların bütün savaş gemilerine kapatılması|Sırbistan'ın bağımsız olması","Kırım bağımsız oldu; halkı Müslüman Türk olan bir toprak ilk kez Osmanlı'dan çıktı. Rusya Ortodoksların koruyuculuğunu (hamilik) elde etti."],
+["H","Osmanlı Dağılma","COK","Tanzimat Fermanı (1839) ile ilgili aşağıdakilerden hangisi yanlıştır?","Meclis açılarak meşrutiyete geçilmiştir.|Kanun üstünlüğü ilkesi kabul edilmiştir.|Can, mal ve namus güvencesi verilmiştir.|Padişah ilk kez kendi yetkilerini sınırlamıştır.|Yargılanmadan kimseye ceza verilmeyeceği belirtilmiştir.","Meşrutiyet ve meclis 1876'da (I. Meşrutiyet, Kanun-i Esasi) geldi. Tanzimat'ta padişah yetkisini kendi isteğiyle sınırladı; hukuk devletine geçişin ilk adımıdır."],
+["H","Osmanlı Dağılma","CIKTI","Osmanlı Devleti'nin ilk anayasası Kanun-i Esasi hangi yıl ilan edilmiştir?","1876|1839|1856|1908|1921","II. Abdülhamit döneminde 1876'da ilan edildi ve I. Meşrutiyet başladı. 1921 Teşkilat-ı Esasiye, TBMM'nin ilk anayasasıdır."],
+["H","Millî Mücadele","COK","«Milletin bağımsızlığını yine milletin azim ve kararı kurtaracaktır.» ifadesi hangi belgede yer alır?","Amasya Genelgesi|Havza Genelgesi|Erzurum Kongresi kararları|Sivas Kongresi kararları|Misak-ı Millî","Amasya Genelgesi'nde (22 Haziran 1919) Millî Mücadele'nin gerekçesi, amacı ve yöntemi ilk kez belirtildi; millî egemenliğe ilk kez vurgu yapıldı."],
+["H","Millî Mücadele","COK","Manda ve himayenin ilk kez reddedildiği kongre hangisidir?","Erzurum Kongresi|Sivas Kongresi|Balıkesir Kongresi|Alaşehir Kongresi|Amasya Görüşmeleri","Erzurum Kongresi'nde manda ve himaye ilk kez reddedildi; Sivas Kongresi'nde ise kesin olarak reddedildi ve cemiyetler birleştirildi."],
+["H","Millî Mücadele","CIKTI","Misak-ı Millî kararları hangi meclis tarafından kabul edilmiştir?","Son Osmanlı Mebusan Meclisi|Türkiye Büyük Millet Meclisi|Heyet-i Temsiliye|Sivas Kongresi|Kurucu Meclis","Misak-ı Millî 28 Ocak 1920'de Son Osmanlı Mebusan Meclisi'nde kabul edildi. Bu, İstanbul'un işgaline (16 Mart 1920) ve TBMM'nin açılmasına giden süreci hızlandırdı."],
+["H","Millî Mücadele","COK","Düzenli ordunun kazandığı ilk zafer hangisidir?","I. İnönü Savaşı|Sakarya Meydan Muharebesi|II. İnönü Savaşı|Kütahya-Eskişehir Savaşları|Büyük Taarruz","I. İnönü (Ocak 1921) sonrası Teşkilat-ı Esasiye kabul edildi, İstiklal Marşı (12 Mart 1921) kabul edildi ve Londra Konferansı toplandı."],
+["H","Millî Mücadele","COK","Sakarya Meydan Muharebesi sonrasında Mustafa Kemal'e TBMM tarafından hangi unvan verilmiştir?","Mareşal ve Gazi|Başkomutan|Atatürk|Paşa|Ebedî Şef","Sakarya (1921) sonrası «Mareşal» rütbesi ve «Gazi» unvanı verildi. Başkomutanlık yetkisi Sakarya'dan önce verildi; «Atatürk» soyadı 1934'te verildi."],
+["H","Millî Mücadele","CIKAR","Mudanya Ateşkes Antlaşması (1922) ile hangi bölge savaşmadan kurtarılmıştır?","Doğu Trakya (İstanbul ve Boğazlar dâhil)|Batı Trakya|Hatay|Musul|Kars ve Ardahan","Mudanya ile İstanbul, Boğazlar ve Doğu Trakya savaşılmadan kurtarıldı. Hatay 1939'da katıldı; Musul sorunu Lozan'da çözülemedi."],
+["H","İnkılaplar","COK","Aşağıdakilerden hangisi hukuk alanında yapılan inkılaplardandır?","Türk Medeni Kanunu'nun kabulü|Harf İnkılabı|Soyadı Kanunu|Tevhid-i Tedrisat Kanunu|Şapka Kanunu","Türk Medeni Kanunu (17 Şubat 1926) hukuk alanındadır. Harf İnkılabı ve Tevhid-i Tedrisat eğitim-kültür; Soyadı ve Şapka Kanunu toplumsal alandadır."],
+["H","İnkılaplar","CIKAR","Türk kadınına milletvekili seçme ve seçilme hakkı hangi yıl verilmiştir?","1934|1926|1930|1933|1946","1930: belediye seçimleri, 1933: muhtarlık seçimleri, 1934: milletvekili seçimleri. Türk kadını birçok Avrupa ülkesinden önce bu hakkı kazandı."],
+["H","Atatürk İlkeleri","CIKAR","Özel girişimin yetersiz kaldığı alanlarda devletin ekonomiye doğrudan yatırım yapmasını öngören Atatürk ilkesi hangisidir?","Devletçilik|Halkçılık|Cumhuriyetçilik|İnkılapçılık|Milliyetçilik","Devletçilik 1929 Dünya Ekonomik Bunalımı sonrası öne çıktı; I. Beş Yıllık Sanayi Planı (1934) bu ilkenin uygulamasıdır."],
+["H","Dış Politika","CIKTI","Hatay hangi yıl anavatana katılmıştır?","1939|1923|1926|1936|1945","Hatay 1938'de bağımsız devlet oldu, 1939'da Türkiye'ye katıldı. 1936 Montrö ile Boğazlar üzerindeki egemenlik tam sağlandı; 1926'da Musul sorunu Ankara Antlaşması ile kapandı."],
+/* ================= COĞRAFYA ================= */
+["C","Konum","COK","Türkiye'nin Kuzey Yarım Küre'de yer almasının sonucu aşağıdakilerden hangisidir?","Güneye bakan yamaçların daha fazla güneş alması|Kuzeyden güneye gidildikçe sıcaklığın azalması|En doğu ile en batı arasında 76 dakika zaman farkı olması|Karadeniz kıyılarının bol yağış alması|Kıyılar ile iç kesimler arasında sıcaklık farkı olması","Kuzey Yarım Küre'de güneş ışınları güneyden geldiği için güney yamaçlar daha sıcaktır (bakı etkisi). 76 dakika boylam farkının; kıyı-iç fark ve Karadeniz yağışı özel konumun sonucudur."],
+["C","Konum","CIKTI","Türkiye'nin en doğusu ile en batısı arasındaki yerel saat farkı kaç dakikadır?","76|60|80|88|96","Türkiye 26°–45° doğu boylamları arasındadır: 19 boylam × 4 dakika = 76 dakika."],
+["C","İklim","COK","Yazları sıcak ve kurak, kışları ılık ve yağışlı geçen; doğal bitki örtüsü maki olan iklim tipi hangisidir?","Akdeniz iklimi|Karadeniz iklimi|Karasal iklim|Muson iklimi|Okyanusal iklim","Akdeniz ikliminde maki tahrip edildiğinde yerini garig alır. Karadeniz'de her mevsim yağışlı, karasal iklimde bozkır görülür."],
+["C","İklim","CIKTI","Karadeniz ikliminin doğal bitki örtüsü aşağıdakilerden hangisidir?","Orman|Maki|Bozkır (step)|Garig|Savan","Karadeniz iklimi her mevsim yağışlıdır; bu nedenle gür ormanlar görülür. Bozkır karasal, maki Akdeniz iklimine aittir."],
+["C","İklim","COK","Türkiye'de yıllık yağışın en fazla olduğu yer aşağıdakilerden hangisidir?","Rize|Konya|Antalya|İzmir|Erzurum","Doğu Karadeniz'de dağlar kıyıya paralel uzandığından nemli hava yükselir ve bol yağış bırakır (orografik yağış). En az yağış Tuz Gölü çevresindedir."],
+["C","Yer Şekilleri","COK","Aşağıdakilerden hangisi karstik bir şekildir?","Traverten|Kumul|Delta|Sirk|Falez","Traverten (Pamukkale), kalsiyum karbonatlı suyun çökeltmesiyle oluşan karstik birikim şeklidir. Kumul rüzgâr, delta akarsu, sirk buzul, falez dalga şeklidir."],
+["C","Yer Şekilleri","CIKTI","Rüzgâr aşındırmasıyla oluşan şekil aşağıdakilerden hangisidir?","Mantar kaya|Dev kazanı|Dolin|Moren|Tombolo","Mantar kaya, rüzgârın taşıdığı kumların kayaların alt kısmını daha çok aşındırmasıyla oluşur. Dev kazanı akarsu, dolin karst, moren buzul, tombolo dalga şeklidir."],
+["C","Nüfus","COK","Türkiye'de nüfusun en yoğun olduğu coğrafi bölge hangisidir?","Marmara Bölgesi|İç Anadolu Bölgesi|Karadeniz Bölgesi|Doğu Anadolu Bölgesi|Ege Bölgesi","Sanayi, ticaret ve ulaşım olanakları Marmara'yı en yoğun bölge yapar. Nüfus yoğunluğu en az olan bölge Doğu Anadolu'dur."],
+["C","Nüfus","CIKAR","Türkiye'de 2007'den beri nüfus sayımında hangi yöntem kullanılmaktadır?","Adrese Dayalı Nüfus Kayıt Sistemi|Sokağa çıkma yasaklı geleneksel sayım|Örnekleme yöntemi|Yalnızca anket yöntemi|Tahmini hesaplama","Adrese Dayalı Nüfus Kayıt Sistemi (ADNKS) ile nüfus her yıl kayıtlardan belirlenir; sokağa çıkma yasağına gerek kalmaz."],
+["C","Tarım","COK","Türkiye'de çay tarımının yalnızca Doğu Karadeniz'de yapılmasının temel nedeni aşağıdakilerden hangisidir?","Her mevsim yağışlı ve ılıman bir iklime sahip olması|Düz arazilerin fazla olması|Nüfusun az olması|Karasal iklimin görülmesi|Sulama kanallarının yaygın olması","Çay bol ve düzenli yağış ister, dona dayanıksızdır. Doğu Karadeniz bu koşulları sağlar; çay eğimli yamaçlarda da yetiştirilebilir."],
+["C","Tarım","CIKTI","Türkiye'de pamuk üretiminin yoğun olduğu yerler aşağıdakilerden hangisinde birlikte verilmiştir?","Çukurova, Harran Ovası (GAP) ve Ege|Doğu Karadeniz ve Trakya|Erzurum-Kars Platosu ve Ardahan|Konya Ovası ve Göller Yöresi|Batı Karadeniz ve Yıldız Dağları","Pamuk sıcaklık ve sulama ister. GAP ile sulamaya açılan Harran Ovası (Şanlıurfa) bugün en büyük üretim alanıdır."],
+["C","Madenler","COK","Türkiye'nin dünya rezervlerinde ilk sırada olduğu maden aşağıdakilerden hangisidir?","Bor|Demir|Bakır|Taş kömürü|Petrol","Dünya bor rezervlerinin büyük kısmı Türkiye'dedir (Eskişehir-Kırka, Balıkesir-Bigadiç, Kütahya-Emet)."],
+["C","Madenler","CIKAR","Türkiye'nin taş kömürü havzası neresidir?","Zonguldak|Afşin-Elbistan|Soma|Divriği|Murgul","Taş kömürü Zonguldak havzasındadır. Afşin-Elbistan ve Soma linyit, Divriği demir, Murgul bakır yatağıdır."],
+["C","Enerji","COK","Türkiye'nin en büyük barajı ve üzerinde bulunduğu akarsu aşağıdakilerden hangisidir?","Atatürk Barajı – Fırat|Keban Barajı – Kızılırmak|Hirfanlı Barajı – Sakarya|Sarıyar Barajı – Dicle|Ilısu Barajı – Seyhan","Atatürk Barajı, GAP kapsamında Fırat üzerinde kuruludur. Keban da Fırat üzerindedir; Hirfanlı Kızılırmak, Sarıyar Sakarya, Ilısu Dicle üzerindedir."],
+["C","Su Kaynakları","CIKTI","Sınırları tamamen Türkiye'de olan en uzun akarsu hangisidir?","Kızılırmak|Fırat|Sakarya|Yeşilırmak|Büyük Menderes","Kızılırmak (yaklaşık 1355 km) Karadeniz'e dökülür. Fırat daha uzundur ama Türkiye dışına çıkar."],
+["C","Su Kaynakları","COK","Türkiye'nin en büyük gölü olan Van Gölü'nün oluşum türü aşağıdakilerden hangisidir?","Volkanik set gölü|Karstik göl|Buzul gölü|Tektonik göl|Heyelan set gölü","Van Gölü, Nemrut Dağı'ndan çıkan lavların önünü kapatmasıyla oluşmuş volkanik set gölüdür; suyu sodalıdır."],
+["C","Doğal Afetler","CIKAR","Türkiye'de en fazla can ve mal kaybına yol açan doğal afet hangisidir?","Deprem|Heyelan|Sel|Çığ|Orman yangını","Türkiye aktif fay hatları (Kuzey ve Doğu Anadolu Fay Hatları) üzerindedir. Heyelan en sık Karadeniz'de, çığ en sık Doğu Anadolu'da görülür."],
+["C","Doğal Afetler","CIKAR","Türkiye'de heyelanın en sık görüldüğü bölge hangisidir?","Karadeniz Bölgesi|İç Anadolu Bölgesi|Güneydoğu Anadolu Bölgesi|Ege Bölgesi|Marmara Bölgesi","Bol yağış, eğimli arazi ve killi toprak bir araya gelince heyelan sık görülür; bu koşullar en çok Karadeniz'de vardır."],
+["C","Turizm","CIKTI","Peri bacalarıyla ünlü turizm bölgesi aşağıdakilerden hangisidir?","Kapadokya (Nevşehir)|Pamukkale (Denizli)|Ölüdeniz (Muğla)|Uzungöl (Trabzon)|Nemrut Dağı (Adıyaman)","Peri bacaları volkanik tüflerin sel ve akarsularla aşınmasıyla oluşur. Kapadokya UNESCO Dünya Mirası Listesi'ndedir."],
+/* ================= VATANDAŞLIK ================= */
+["V","1982 Anayasası","COK","Aşağıdakilerden hangisi 1982 Anayasası'nın 3. maddesinde yer almaz?","Devletin şeklinin Cumhuriyet olduğu|Dilinin Türkçe olduğu|Başkentinin Ankara olduğu|Millî marşının İstiklal Marşı olduğu|Bayrağının beyaz ay yıldızlı al bayrak olduğu","3. madde: devletin bütünlüğü, dili, bayrağı, millî marşı ve başkenti. «Devletin şekli Cumhuriyettir» hükmü 1. maddededir. İlk üç madde değiştirilemez."],
+["V","Hukuk","COK","Aşağıdakilerden hangisi hukukun yardımcı (tali) kaynaklarındandır?","Yargı kararları|Kanun|Anayasa|Yönetmelik|Cumhurbaşkanlığı kararnamesi","Yardımcı kaynaklar: yargı kararları ve bilimsel görüşler (doktrin). Anayasa, kanun, CBK ve yönetmelik asli yazılı kaynaklardır; örf ve adet asli yazısız kaynaktır."],
+["V","Hukuk","CIKTI","Türk Medeni Kanunu'na göre aşağıdakilerden hangisi fiil ehliyetinin şartlarındandır?","Ergin olmak|Türk vatandaşı olmak|Evli olmak|Mal sahibi olmak|Askerliğini yapmış olmak","Fiil ehliyetinin şartları: ayırt etme gücüne sahip olmak, ergin olmak ve kısıtlı olmamak. Hak ehliyeti ise sağ doğmak şartıyla ana rahmine düşüldüğü andan başlar."],
+["V","Hukuk","COK","Türk Medeni Kanunu'na göre erginlik yaşı kaçtır?","18|15|17|21|25","Erginlik 18 yaşla başlar. Evlenme kişiyi ergin kılar; 15 yaşını dolduran kişi mahkeme kararıyla da ergin kılınabilir."],
+["V","Yasama","COK","1982 Anayasası'na göre yasama yetkisi Türk Milleti adına kime aittir?","Türkiye Büyük Millet Meclisi|Cumhurbaşkanı|Anayasa Mahkemesi|Bakanlar|Danıştay","Yasama yetkisi TBMM'nindir ve devredilemez. Yürütme yetkisi Cumhurbaşkanı'na, yargı yetkisi bağımsız mahkemelere aittir."],
+["V","Yasama","CIKAR","TBMM kaç milletvekilinden oluşur?","600|450|550|500|400","2017 Anayasa değişikliğiyle milletvekili sayısı 550'den 600'e çıkarıldı."],
+["V","Yasama","COK","Milletvekili seçilebilme yaşı kaçtır?","18|21|25|30|40","2017 değişikliğiyle 25'ten 18'e indirildi. Cumhurbaşkanı adayı olabilmek için ise 40 yaş gerekir."],
+["V","Yasama","CIKAR","TBMM ve Cumhurbaşkanlığı seçimleri kaç yılda bir yapılır?","5|4|6|7|3","2017 değişikliğiyle iki seçim aynı günde ve 5 yılda bir yapılır."],
+["V","Yürütme","COK","Cumhurbaşkanı seçilebilmek için gereken en düşük yaş kaçtır?","40|35|30|45|25","Şartlar: 40 yaşını doldurmuş, yükseköğrenim yapmış ve milletvekili seçilme yeterliliğine sahip Türk vatandaşı olmak."],
+["V","Yürütme","CIKTI","Bir kişi en fazla kaç kez Cumhurbaşkanı seçilebilir?","İki kez|Bir kez|Üç kez|Sınır yoktur|Dört kez","Görev süresi 5 yıldır ve kişi en fazla iki kez seçilebilir. İkinci dönemde TBMM seçimleri yenilerse bir kez daha aday olabilir."],
+["V","Yürütme","CIKAR","Olağanüstü hal ilan etme yetkisi kime aittir?","Cumhurbaşkanı|TBMM Başkanı|Millî Güvenlik Kurulu|İçişleri Bakanı|Anayasa Mahkemesi","Cumhurbaşkanı en fazla 6 ay süreyle OHAL ilan edebilir; karar Resmî Gazete'de yayımlanır ve aynı gün TBMM onayına sunulur."],
+["V","Yargı","COK","Anayasa Mahkemesi kaç üyeden oluşur?","15|11|17|13|21","15 üyenin 3'ünü TBMM, 12'sini Cumhurbaşkanı seçer. Üyeler 12 yıl için seçilir ve bir daha seçilemez."],
+["V","Yargı","CIKAR","İdari yargının en üst mahkemesi hangisidir?","Danıştay|Yargıtay|Sayıştay|Uyuşmazlık Mahkemesi|Anayasa Mahkemesi","Danıştay idari mahkemelerin; Yargıtay adli mahkemelerin son inceleme merciidir."],
+["V","Yargı","COK","Uyuşmazlık Mahkemesi'nin görevi aşağıdakilerden hangisidir?","Adli ve idari yargı arasındaki görev ve hüküm uyuşmazlıklarını kesin olarak çözmek|Kanunların Anayasa'ya uygunluğunu denetlemek|Kamu harcamalarını TBMM adına denetlemek|Seçimlerin genel yönetimini yapmak|Hâkim ve savcıları atamak","Anayasa'ya uygunluk denetimi Anayasa Mahkemesi'nin, harcama denetimi Sayıştay'ın, seçimler YSK'nın, hâkim-savcı atamaları HSK'nın görevidir."],
+["V","Yargı","CIKTI","Sayıştay, kamu harcamalarını kim adına denetler?","TBMM adına|Cumhurbaşkanı adına|Hazine ve Maliye Bakanlığı adına|Danıştay adına|Anayasa Mahkemesi adına","Sayıştay, merkezî yönetim bütçesi kapsamındaki kamu idarelerinin gelir, gider ve mallarını TBMM adına denetler."],
+["V","Temel Haklar","COK","1982 Anayasası'na göre aşağıdakilerden hangisi siyasi haklardandır?","Seçme ve seçilme hakkı|Eğitim hakkı|Mülkiyet hakkı|Konut dokunulmazlığı|Sağlık hakkı","Siyasi haklar: seçme-seçilme, siyasi parti kurma, kamu hizmetine girme, dilekçe hakkı. Eğitim ve sağlık sosyal; mülkiyet ve konut dokunulmazlığı kişi hakkıdır."],
+["V","İdare","COK","Aşağıdakilerden hangisi mahallî idare değildir?","Valilik|Belediye|İl özel idaresi|Köy|Büyükşehir belediyesi","Valilik, merkezî yönetimin taşra teşkilatıdır. Mahallî idareler: il özel idaresi, belediye (büyükşehir dâhil) ve köydür."],
+["V","İdare","CIKTI","Belediyenin karar organı aşağıdakilerden hangisidir?","Belediye meclisi|Belediye başkanı|Belediye encümeni|Vali|İl genel meclisi","Belediye organları: belediye meclisi (karar), belediye encümeni ve belediye başkanı (yürütme). İl genel meclisi il özel idaresinin karar organıdır."],
+["V","Yasama","CIKAR","2017 Anayasa değişikliğinden sonra kanun teklif etme yetkisi kime aittir?","Milletvekillerine|Cumhurbaşkanına|Bakanlara|Danıştaya|Anayasa Mahkemesine","Kanun teklif etme yetkisi yalnızca milletvekillerindedir. Cumhurbaşkanı ise bütçe kanunu teklifini TBMM'ye sunar."],
+["V","Hukuk","COK","Hukuk kurallarını ahlak, din ve görgü kurallarından ayıran temel özellik aşağıdakilerden hangisidir?","Devlet gücüyle desteklenen yaptırımının olması|Toplumsal hayatı düzenlemesi|Yazılı olmaması|Kişiden kişiye değişmesi|Yalnızca vicdani yaptırımının olması","Bütün sosyal kurallar toplumsal hayatı düzenler; hukuk kuralını ayıran şey devlet gücüyle uygulanan maddi yaptırımdır (ceza, tazminat, cebri icra, iptal, hükümsüzlük)."]
+];
+
 /* ---------- Durum ---------- */
 const CARDS = RAW.map((r,i)=>({id:i,d:r[0],k:r[1],s:r[2],q:r[3],a:r[4],e:r[5],y:r[6]?r[6].split("|"):[]}));
+/* Sınav soruları: şıklar sabit; doğru şık yazımda ilk sıradadır, sabit sıralı (I–V gibi) sorularda r[6] doğru şıkkın sırasıdır */
+const TAGS={COK:["ÇOK ÇIKTI","tg-cok"],CIKTI:["ÇIKTI","tg-cikti"],CIKAR:["ÇIKAR","tg-cikar"]};
+const EXAMS = SRAW.map((r,i)=>{const o=r[4].split("|"),fix=typeof r[6]==="number";return {id:"s"+i,d:r[0],k:r[1],t:r[2],q:r[3],a:fix?o[r[6]]:o[0],opts:fix?o:seeded(o,i*13+5),e:r[5],y:[],s:0}});
 const store={get(k,f){try{const v=localStorage.getItem("kpssHap_"+k);return v==null?f:JSON.parse(v)}catch(e){return f}},set(k,v){try{localStorage.setItem("kpssHap_"+k,JSON.stringify(v))}catch(e){}}};
-let filter=store.get("filter","ALL"), mode=store.get("mode","card"), shuffled=store.get("shuf",false);
+let mode=store.get("mode","card"), shuffled=store.get("shuf",false);
+const fkey=()=>mode==="exam"?"filterX":"filter"; let filter=store.get(fkey(),"ALL");
 let review=new Set(store.get("review",[])); let posMap=store.get("pos",{});
-let list=[], idx=0, revealed=false, answered={}, score={ok:0,bad:0}, optCache={};
+let list=[], idx=0, revealed=false, answered={}, scores={test:{ok:0,bad:0},exam:{ok:0,bad:0}}, score=scores[mode]||scores.test, optCache={};
 
 const FILTERS=[["ALL","Tümü",null],["STAR","⭐ Çok çıkar",null],["REV","🔁 Tekrarım",null],["T",D.T,"--c-T"],["H",D.H,"--c-H"],["C",D.C,"--c-C"],["V",D.V,"--c-V"],["G",D.G,"--c-G"]];
+const FILTERS_X=[["ALL","Tümü",null],["COK","🔥 Çok çıktı",null],["CIKTI","✅ Çıktı",null],["CIKAR","🎯 Çıkar",null],["REV","🔁 Tekrarım",null],["T",D.T,"--c-T"],["H",D.H,"--c-H"],["C",D.C,"--c-C"],["V",D.V,"--c-V"]];
+const filters=()=>mode==="exam"?FILTERS_X:FILTERS, pool=()=>mode==="exam"?EXAMS:CARDS;
+const match=(c,f)=>f==="ALL"||(f==="STAR"&&c.s)||(f==="REV"&&review.has(c.id))||(c.t!=null&&c.t===f)||c.d===f;
+const pkey=()=>(mode==="exam"?"x":"")+filter+(shuffled?"s":"");
+if(!filters().some(f=>f[0]===filter)) filter="ALL";
 const $=s=>document.querySelector(s);
 function seeded(arr,seed){const a=arr.slice();let s=seed;for(let i=a.length-1;i>0;i--){s=(s*9301+49297)%233280;const j=Math.floor(s/233280*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function build(){
-  let L=CARDS.filter(c=>filter==="ALL"||(filter==="STAR"&&c.s)||(filter==="REV"&&review.has(c.id))||c.d===filter);
-  if(shuffled) L=seeded(L,store.get("seed",7));
-  list=L; idx=Math.min(posMap[filter+(shuffled?"s":"")]||0,Math.max(0,list.length-1));
+  let L=pool().filter(c=>match(c,filter));
+  /* Sınav modunda çıktı / çok çıktı / çıkar soruları her zaman karışık gelir */
+  if(shuffled) L=seeded(L,store.get("seed",7)); else if(mode==="exam") L=seeded(L,29);
+  list=L; idx=Math.min(posMap[pkey()]||0,Math.max(0,list.length-1));
 }
-function counts(f){return CARDS.filter(c=>f==="ALL"||(f==="STAR"&&c.s)||(f==="REV"&&review.has(c.id))||c.d===f).length}
+function counts(f){return pool().filter(c=>match(c,f)).length}
 function renderChips(){
-  $("#chips").innerHTML=FILTERS.map(([k,l,col])=>`<button class="chip" data-f="${k}" aria-pressed="${filter===k}" ${col?`style="--dot:var(${col})"`:""}>${col?"<i></i>":""}${l}<span class="n">${counts(k)}</span></button>`).join("");
-  $("#chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.f;store.set("filter",filter);build();renderChips();render(0)});
+  $("#chips").innerHTML=filters().map(([k,l,col])=>`<button class="chip" data-f="${k}" aria-pressed="${filter===k}" ${col?`style="--dot:var(${col})"`:""}>${col?"<i></i>":""}${l}<span class="n">${counts(k)}</span></button>`).join("");
+  $("#chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.f;store.set(fkey(),filter);build();renderChips();render(0)});
   const on=$("#chips").querySelector('[aria-pressed="true"]'); if(on) on.scrollIntoView({inline:"nearest",block:"nearest"});
 }
 function options(c){
+  if(c.opts) return c.opts;
   if(optCache[c.id]) return optCache[c.id];
   const pool=[...new Set(CARDS.filter(x=>x.d===c.d&&x.k===c.k&&x.a!==c.a).map(x=>x.a))];
   const more=[...new Set(CARDS.filter(x=>x.d===c.d&&x.k!==c.k&&x.a!==c.a).map(x=>x.a))];
@@ -327,14 +438,15 @@ function options(c){
 }
 function esc(s){return s.replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))}
 function cardHTML(c){
-  const top=`<div class="card-top"><div class="tag" style="--subj:var(--c-${c.d})">${D[c.d]}<span>· ${esc(c.k)}</span></div>${c.s?'<span class="star">ÇOK ÇIKAR</span>':""}</div>`;
+  const top=`<div class="card-top"><div class="tag" style="--subj:var(--c-${c.d})">${D[c.d]}<span>· ${esc(c.k)}</span></div>${c.t?`<span class="tg ${TAGS[c.t][1]}">${TAGS[c.t][0]}</span>`:c.s?'<span class="star">ÇOK ÇIKAR</span>':""}</div>`;
+  const qh=`<div class="q${c.q.length>110?" long":""}">${esc(c.q).replace(/\n/g,"<br>")}</div>`;
   const back=`<div class="ans"><small>CEVAP</small>${esc(c.a)}</div><div class="exp">${esc(c.e)}</div>${c.y.length?`<div class="side"><h4>YAN SORULAR · BENZERLERİ</h4><ul>${c.y.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`:""}`;
   if(mode==="card"){
-    return top+`<div class="card-body"><div class="q">${esc(c.q)}</div>${revealed?back:`<div class="hint">Cevap için karta dokun · kaydırarak geç</div>`}</div>`;
+    return top+`<div class="card-body">${qh}${revealed?back:`<div class="hint">Cevap için karta dokun · kaydırarak geç</div>`}</div>`;
   }
   const opts=options(c), st=answered[c.id];
   const L="ABCDE";
-  return top+`<div class="card-body"><div class="q">${esc(c.q)}</div><div class="opts">${opts.map((o,i)=>{let cls="";if(st!=null){if(o===c.a)cls="right";else if(i===st)cls="wrong"}return `<button class="opt ${cls}" data-i="${i}" ${st!=null?"disabled":""}><span class="b">${L[i]}</span><span>${esc(o)}</span></button>`}).join("")}</div>${st!=null?back.replace('<div class="ans"><small>CEVAP</small>'+esc(c.a)+'</div>',""):""}</div>`;
+  return top+`<div class="card-body">${qh}<div class="opts">${opts.map((o,i)=>{let cls="";if(st!=null){if(o===c.a)cls="right";else if(i===st)cls="wrong"}return `<button class="opt ${cls}" data-i="${i}" ${st!=null?"disabled":""}><span class="b">${L[i]}</span><span>${esc(o)}</span></button>`}).join("")}</div>${st!=null?back.replace('<div class="ans"><small>CEVAP</small>'+esc(c.a)+'</div>',""):""}</div>`;
 }
 function render(dir){
   const stage=$("#stage");
@@ -352,14 +464,14 @@ function render(dir){
 }
 function rerender(){const el=$("#stage .card");if(!el)return;el.innerHTML=cardHTML(list[idx]);el.querySelectorAll(".opt").forEach(b=>b.onclick=ev=>{ev.stopPropagation();answer(list[idx],+b.dataset.i)})}
 function answer(c,i){if(answered[c.id]!=null)return;answered[c.id]=i;const ok=options(c)[i]===c.a;ok?score.ok++:score.bad++;if(!ok&&!review.has(c.id)){review.add(c.id);store.set("review",[...review]);renderChips()}rerender();updBar()}
-function go(d){if(!list.length)return;const n=idx+d;if(n<0||n>=list.length)return;idx=n;revealed=false;posMap[filter+(shuffled?"s":"")]=idx;store.set("pos",posMap);render(d)}
+function go(d){if(!list.length)return;const n=idx+d;if(n<0||n>=list.length)return;idx=n;revealed=false;posMap[pkey()]=idx;store.set("pos",posMap);render(d)}
 function updBar(){
   const n=list.length; $("#count").textContent=n?`${idx+1} / ${n}`:"0 / 0";
   $("#prog").style.width=n?((idx+1)/n*100)+"%":"0";
   const c=list[idx]; $("#rev").setAttribute("aria-pressed",c&&review.has(c.id)?"true":"false");
-  $("#score").innerHTML=mode==="test"&&(score.ok+score.bad)?`Doğru <b>${score.ok}</b> · Yanlış <em>${score.bad}</em>`:(mode==="test"?"Şıkka dokun":"");
+  $("#score").innerHTML=mode!=="card"&&(score.ok+score.bad)?`Doğru <b>${score.ok}</b> · Yanlış <em>${score.bad}</em>`:(mode!=="card"?"Şıkka dokun":"");
   $("#prev").disabled=idx<=0; $("#next").disabled=idx>=n-1;
-  $("#mCard").setAttribute("aria-pressed",mode==="card"); $("#mTest").setAttribute("aria-pressed",mode==="test");
+  $("#mCard").setAttribute("aria-pressed",mode==="card"); $("#mTest").setAttribute("aria-pressed",mode==="test"); $("#mExam").setAttribute("aria-pressed",mode==="exam");
   $("#shuf").setAttribute("aria-pressed",shuffled); $("#shuf").style.background=shuffled?"var(--fg)":""; $("#shuf").style.color=shuffled?"var(--bg)":"";
 }
 /* ---------- Dokunma / kaydırma ---------- */
@@ -381,13 +493,17 @@ document.addEventListener("keydown",e=>{
   if(e.key==="ArrowDown"||e.key==="ArrowRight"||e.key==="j")go(1);
   else if(e.key==="ArrowUp"||e.key==="ArrowLeft"||e.key==="k")go(-1);
   else if(e.key===" "||e.key==="Enter"){if(mode==="card"){e.preventDefault();revealed=!revealed;rerender()}}
-  else if(mode==="test"&&/^[a-eA-E1-5]$/.test(e.key)){const i=/\d/.test(e.key)?+e.key-1:"abcde".indexOf(e.key.toLowerCase());if(list[idx])answer(list[idx],i)}
+  else if(mode!=="card"&&/^[a-eA-E1-5]$/.test(e.key)){const i=/\d/.test(e.key)?+e.key-1:"abcde".indexOf(e.key.toLowerCase());if(list[idx])answer(list[idx],i)}
 });
 $("#next").onclick=()=>go(1); $("#prev").onclick=()=>go(-1);
 $("#rev").onclick=()=>{const c=list[idx];if(!c)return;review.has(c.id)?review.delete(c.id):review.add(c.id);store.set("review",[...review]);renderChips();updBar()};
 $("#shuf").onclick=()=>{shuffled=!shuffled;if(shuffled)store.set("seed",Math.floor(Math.random()*9999)+1);store.set("shuf",shuffled);build();render(0)};
-$("#mCard").onclick=()=>{mode="card";store.set("mode",mode);revealed=false;render(0)};
-$("#mTest").onclick=()=>{mode="test";store.set("mode",mode);render(0)};
+function setMode(m){const pool0=pool();mode=m;store.set("mode",mode);revealed=false;score=scores[m]||score;
+  if(pool()!==pool0){filter=store.get(fkey(),"ALL");if(!filters().some(f=>f[0]===filter))filter="ALL";build();renderChips()}
+  render(0)}
+$("#mCard").onclick=()=>setMode("card");
+$("#mTest").onclick=()=>setMode("test");
+$("#mExam").onclick=()=>setMode("exam");
 /* Geri sayım */
 (function(){const ex=new Date("2026-10-25T10:15:00+03:00");const d=Math.ceil((ex-new Date())/864e5);$("#sub").textContent=d>0?`SINAVA ${d} GÜN · 25 EKİM 10.15`:"25 EKİM PAZAR · 10.15 · BOL ŞANS"})();
 build(); renderChips(); render(0);
