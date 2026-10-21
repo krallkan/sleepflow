@@ -52,7 +52,11 @@ jobs:
             echo "assets/index.html is byte-identical"
             "$AAPT" dump badging "$apk" | grep -E "^(package|sdkVersion|targetSdkVersion|application-label):"
           done
-          "$(dirname "$AAPT")/apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk | head -3
+          # Both APKs must carry the fixed app key, or updates fail with "App not installed".
+          for apk in app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/release/app-release.apk; do
+            "$(dirname "$AAPT")/apksigner" verify --print-certs "$apk" | tee /tmp/certs.txt | head -3
+            grep -q "CN=KPSS Hap" /tmp/certs.txt || { echo "::error::$apk is not signed with signing/kpsshap.jks"; exit 1; }
+          done
 
       - name: Collect APKs
         run: |

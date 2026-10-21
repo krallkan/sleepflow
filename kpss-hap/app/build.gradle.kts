@@ -18,13 +18,26 @@ android {
         versionName = "1.0"
     }
 
+    // Fixed key so every build (CI runners included) has the same signature;
+    // otherwise Android refuses to install an update over the previous version.
+    signingConfigs {
+        create("kpss") {
+            storeFile = rootProject.file("signing/kpsshap.jks")
+            storePassword = "kpsshap123"
+            keyAlias = "kpsshap"
+            keyPassword = "kpsshap123"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("kpss")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Sideload build: signed with the debug keystore so it installs directly.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("kpss")
         }
     }
 

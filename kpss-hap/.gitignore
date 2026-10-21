@@ -4,3 +4,5 @@ app/build/
 local.properties
 .idea/
 *.iml
+# Sabit imza anahtarı: güncellemelerin eski sürümün üzerine kurulabilmesi için repoda tutulur
+!signing/kpsshap.jks
