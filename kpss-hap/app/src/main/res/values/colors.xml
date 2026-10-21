@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Matches --bg in index.html so there is no flash before the page paints. -->
+    <!-- Matches the page background colour in index.html so there is no flash before the page paints. -->
     <color name="page_bg">#EEF1F6</color>
     <color name="icon_bg">#2446C9</color>
 </resources>
