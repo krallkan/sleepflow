@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-API 26 launcher icon: rounded square with the same glyph. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#2446C9" android:pathData="M24,6H84A18,18 0,0 1,102 24V84A18,18 0,0 1,84 102H24A18,18 0,0 1,6 84V24A18,18 0,0 1,24 6z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M38,32h11v44h-11z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M46,53L61.5,32H75L56,57z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M51,51L75.5,76H62L45,59z" />
+</vector>

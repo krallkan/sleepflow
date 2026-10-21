@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>KPSS Lise Hap Kartlar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+/* Layout: tek ekranlık uygulama — üstte ders şeritleri, ortada tek kart (kaydırmalı), altta kontrol çubuğu */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface-2:#f5f7fb; --fg:#151a26; --muted:#5a6375; --line:#d8dde8;
+  --accent:#2446c9; --accent-ink:#ffffff; --mark:#ffe27a; --mark-ink:#3a2c00;
+  --ok:#1d7a4a; --ok-bg:#dff3e7; --bad:#b4232c; --bad-bg:#fbe3e4;
+  --c-T:#7b3fc4; --c-H:#b8482a; --c-C:#13836f; --c-V:#2a5bb8; --c-G:#b07a00;
+  --shadow:0 10px 30px rgba(28,40,80,.10), 0 2px 6px rgba(28,40,80,.06);
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#10131b; --surface:#1a1f2c; --surface-2:#222839; --fg:#eef1f8; --muted:#a3abbf; --line:#2f3649;
+  --accent:#8ea4ff; --accent-ink:#0d1330; --mark:#e9c349; --mark-ink:#241a00;
+  --ok:#6fd49c; --ok-bg:#163526; --bad:#ff8d93; --bad-bg:#3b1a1d;
+  --c-T:#c39bff; --c-H:#ff9a7a; --c-C:#5fd6bd; --c-V:#8fb1ff; --c-G:#f0c35a;
+  --shadow:0 10px 30px rgba(0,0,0,.45); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#10131b; --surface:#1a1f2c; --surface-2:#222839; --fg:#eef1f8; --muted:#a3abbf; --line:#2f3649;
+  --accent:#8ea4ff; --accent-ink:#0d1330; --mark:#e9c349; --mark-ink:#241a00;
+  --ok:#6fd49c; --ok-bg:#163526; --bad:#ff8d93; --bad-bg:#3b1a1d;
+  --c-T:#c39bff; --c-H:#ff9a7a; --c-C:#5fd6bd; --c-V:#8fb1ff; --c-G:#f0c35a;
+  --shadow:0 10px 30px rgba(0,0,0,.45); color-scheme:dark }
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.app{height:100%;display:flex;flex-direction:column;max-width:560px;margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:10px 12px;gap:10px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;flex-direction:column;min-width:0}
+.brand b{font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:-.01em;line-height:1.1}
+.brand small{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.04em}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;flex-shrink:0}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px var(--f-body);padding:7px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;flex-shrink:0}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:500 13px var(--f-body);padding:7px 11px;border-radius:999px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--dot,var(--muted));font-style:normal}
+.chip .n{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--fg);background:var(--fg);color:var(--bg)}
+.chip[aria-pressed="true"] .n{color:var(--bg);opacity:.75}
+.stage{flex:1;min-height:0;position:relative;touch-action:none}
+.card{position:absolute;inset:0;background:var(--surface);border-radius:22px;box-shadow:var(--shadow);border:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;transition:transform .26s cubic-bezier(.2,.8,.2,1),opacity .26s}
+.card.out-up{transform:translateY(-110%) rotate(-2deg);opacity:0}
+.card.out-down{transform:translateY(110%) rotate(2deg);opacity:0}
+.card.out-left{transform:translateX(-115%) rotate(-5deg);opacity:0}
+.card.out-right{transform:translateX(115%) rotate(5deg);opacity:0}
+.card.in{transition:none}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px 0}
+.tag{font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--subj);display:flex;align-items:center;gap:6px;min-width:0}
+.tag span{color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.star{font-family:var(--f-mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;background:var(--mark);color:var(--mark-ink);padding:3px 7px;border-radius:6px;white-space:nowrap}
+.card-body{flex:1;min-height:0;overflow-y:auto;padding:14px 18px 18px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+.q{font-family:var(--f-display);font-weight:600;font-size:clamp(21px,5.6vw,27px);line-height:1.22;letter-spacing:-.01em;text-wrap:balance}
+.hint{margin-top:auto;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;justify-content:center;padding-top:6px}
+.hint kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--surface-2)}
+.ans{background:var(--mark);color:var(--mark-ink);border-radius:14px;padding:12px 14px;font-weight:600;font-size:18px;line-height:1.35}
+.ans small{display:block;font-family:var(--f-mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;opacity:.7;margin-bottom:3px}
+.exp{font-size:15.5px;line-height:1.55;color:var(--fg)}
+.side{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:7px}
+.side h4{margin:0;font-family:var(--f-mono);font-size:11px;letter-spacing:.07em;color:var(--muted);font-weight:700}
+.side ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14.5px;line-height:1.45}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:12px;padding:10px 12px;font:500 15.5px/1.35 var(--f-body);cursor:pointer}
+.opt .b{flex-shrink:0;width:28px;height:28px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;font:700 13px var(--f-mono);color:var(--muted)}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.right .b{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.wrong .b{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.opt:disabled{cursor:default}
+.empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:var(--muted);font-size:15px;line-height:1.5}
+.bar{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;height:46px;min-width:46px;padding:0 12px;font:600 14px var(--f-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);flex:1}
+.btn.rev[aria-pressed="true"]{background:var(--mark);color:var(--mark-ink);border-color:var(--mark)}
+.count{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.prog{height:3px;background:var(--line);border-radius:3px;overflow:hidden;flex-shrink:0}
+.prog div{height:100%;background:var(--accent);width:0;transition:width .25s}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.score{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.score b{color:var(--ok)} .score em{color:var(--bad);font-style:normal;font-weight:700}
+@media (prefers-reduced-motion: reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="brand"><b>KPSS Lise · Hap</b><small id="sub">25 EKİM PAZAR · 10.15</small></div>
+    <div class="seg" role="group" aria-label="Çalışma modu">
+      <button id="mCard" aria-pressed="true">Kart</button>
+      <button id="mTest" aria-pressed="false">Test</button>
+    </div>
+  </header>
+  <nav class="chips" id="chips" aria-label="Ders filtresi"></nav>
+  <div class="prog"><div id="prog"></div></div>
+  <div class="stage" id="stage"></div>
+  <div class="bar">
+    <button class="btn" id="prev" aria-label="Önceki kart">↑ Geri</button>
+    <button class="btn rev" id="rev" aria-pressed="false" aria-label="Tekrar listesine ekle">🔁 Tekrar</button>
+    <button class="btn" id="shuf" aria-pressed="false" aria-label="Karıştır">🔀</button>
+    <button class="btn primary" id="next">Sonraki ↓</button>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+    <span class="count" id="count">1 / 1</span>
+    <span class="score" id="score"></span>
+  </div>
+</div>
+
+<script>
+/* Kart verisi: [ders, konu, çokÇıkar(1/0), soru, cevap, açıklama, yan sorular ("|" ile ayrılmış)] */
+const D = {T:"Türkçe",H:"Tarih",C:"Coğrafya",V:"Vatandaşlık",G:"Güncel"};
+const RAW = [
+/* ================= TÜRKÇE ================= */
+["T","Paragraf",1,"Paragraf sorularında ana düşünce genellikle nerede bulunur?","Genellikle son cümlede (bazen ilk cümlede)","Türkçe'nin yaklaşık yarısı paragraftır. Önce soru kökünü oku, sonra paragrafı. «Asıl anlatılmak istenen» = ana düşünce; «değinilmemiştir» = yardımcı düşünce sorusudur, şıkları tek tek paragrafta ara.","«Bu parçada asıl anlatılmak istenen nedir?» → ana düşünce|«Aşağıdakilerden hangisine değinilmemiştir?» → yardımcı düşünce|Başlık sorusu → ana fikri en kısa söyleyen ifade"],
+["T","Paragraf",1,"«Düşüncenin akışını bozan cümle» nasıl bulunur?","Konuyu başka yöne çeviren cümle","Paragrafta her cümle aynı konuyu işler. Konu aynı görünse bile bakış açısı değişen (ör. kitaptan söz ederken yazarın hayatına geçen) cümle akışı bozar.","İkiye bölünmek istenen paragraf → yeni konunun başladığı cümle|Paragrafa başlanabilecek cümle → bağlaçla (bu, ama, çünkü) başlamayan, kendi başına anlamlı cümle"],
+["T","Sözel Mantık",1,"Sözel mantık sorularında ilk adım ne olmalı?","Bilgileri tabloya dökmek","KPSS'de sözel mantık soruları Türkçe testinin sonunda yer alır. Kesin bilgileri önce tabloya yaz, «ya da» içeren olasılıkları sonra dene. 2-3 soru tek tabloya bağlıdır; bir tablo = birkaç net.","Sıralama, gruplama, eşleştirme tipleri çıkar|«Kesinlikle doğrudur» ile «doğru olabilir» farkına dikkat"],
+["T","Ses Bilgisi",1,"«kitap → kitabı» hangi ses olayıdır?","Ünsüz yumuşaması","p, ç, t, k ile biten sözcüklere ünlüyle başlayan ek gelince b, c, d, ğ/g olur. Tek heceli sözcüklerin çoğunda olmaz: top→topu, saç→saçı.","ağaç→ağacı, kanat→kanadı (yumuşama)|Özel isimlerde yazıya geçmez: Zonguldak'a (okunuşta yumuşar)"],
+["T","Ses Bilgisi",1,"«kitapçı, sütçü, yurtta» örneklerindeki ses olayı?","Ünsüz benzeşmesi (sertleşme)","Sert ünsüzle (f, s, t, k, ç, ş, h, p — «FıSTıKÇı ŞaHaP») biten sözcüğe c, d, g ile başlayan ek gelince bu sesler ç, t, k olur.","Kitap+cı → kitapçı|Yurt+da → yurtta|Ağaç+da → ağaçta"],
+["T","Ses Bilgisi",1,"«ağız → ağzı, burun → burnu, oğul → oğlu» hangi ses olayı?","Ünlü düşmesi","İki heceli bazı sözcüklere ünlüyle başlayan ek gelince ikinci hecedeki dar ünlü düşer. Organ adlarında ve akrabalık adlarında sık görülür.","kayın+ı → kaynı|şehir+i → şehri|«kıvır-ıl» → kıvrıl (fiilde)"],
+["T","Ses Bilgisi",0,"«başla-yor → başlıyor, de-yor → diyor» hangi ses olayı?","Ünlü daralması","a/e ile biten fiillere -yor eki gelince a/e, ı/i/u/ü'ye dönüşür. Sadece -yor ekinde yazıya yansır.","ye-yor → yiyor|anla-yor → anlıyor"],
+["T","Ses Bilgisi",0,"Kaynaştırma harfleri hangileridir?","y, ş, s, n","Ünlüyle biten sözcüğe ünlüyle başlayan ek gelince araya girer: kapı-y-a, iki-ş-er, kapı-s-ı, bahçe-n-in.","Sıfat-fiil -an: oku-y-an|Üleştirme -er: altı-ş-ar"],
+["T","Ses Bilgisi",0,"«affetmek, hissetmek, zannetmek» örneklerinde hangi ses olayı vardır?","Ünsüz türemesi","Arapça kökenli bazı tek heceli sözcükler etmek/olmak ile birleşince ünsüz ikizleşir; bu yüzden bitişik yazılır.","his+etmek → hissetmek|af+olmak → affolmak"],
+["T","Ses Bilgisi",0,"Büyük ünlü uyumuna uymayan ekler hangileridir?","-yor, -ken, -leyin, -ki, -daş, -gil, -mtırak","Bu ekler tek biçimlidir; geldikleri sözcüğün ünlüsüne göre değişmez: geliyor, giderken, akşamleyin, sabahki, meslektaş, teyzemgil, yeşilimtırak.","«kardeş, elma, anne» sözcük kökleri de uyuma aykırıdır (Türkçe kökenli olsa da)"],
+["T","Sözcük Türleri",1,"«de/da» bağlacı ile «-de/-da» eki nasıl ayırt edilir?","Cümleden çıkarınca anlam bozulmuyorsa bağlaçtır (ayrı yazılır)","Bağlaç «da/de» ayrı yazılır, kesme işaretiyle ayrılmaz: «Ben de geldim.» Bulunma hâl eki «-da/-de/-ta/-te» bitişik yazılır: «Evde kaldım.»","«Ankara'da» → ek, kesme işaretiyle|«Sen de mi?» → bağlaç|Bağlaç sertleşmez: «Kitap da» (kitap ta yanlış)"],
+["T","Sözcük Türleri",1,"«ki» ne zaman ayrı, ne zaman bitişik yazılır?","Bağlaç «ki» ayrı; sıfat/zamir yapan «-ki» eki bitişik","«Duydum ki gelmişsin.» (bağlaç, ayrı). «Evdeki, seninki, sabahki» (ek, bitişik). Kalıplaşmış: belki, sanki, çünkü, halbuki, mademki, oysaki, meğerki bitişik.","«Öyle yorgunum ki» → bağlaç|«Bugünkü» → ek|«Masadaki kitap» → ek (sıfat yapıyor)"],
+["T","Sözcük Türleri",1,"«mi» soru eki nasıl yazılır?","Her zaman ayrı; kendinden sonraki eklerle bitişik","«Geldin mi?», «Gelecek misin?», «Güzel miydi?» Ünlüsü önceki sözcüğe uyar.","Soru anlamı katmasa da ayrı yazılır: «Güzel mi güzel»"],
+["T","Sözcük Türleri",1,"«Bu kitap» ve «Bunu aldım» cümlelerinde «bu» hangi türdedir?","İlkinde sıfat (işaret sıfatı), ikincisinde zamir","Sözcük bir ismin önünde onu belirtiyorsa sıfat; ismin yerini tutuyorsa zamirdir.","«Bazı insanlar» sıfat / «Bazıları» zamir|«Kimse gelmedi» → belgisiz zamir"],
+["T","Sözcük Türleri",0,"«Çok güzel bir gün» sözünde «çok» hangi türdedir?","Zarf (miktar zarfı)","Zarf; fiili, fiilimsiyi, sıfatı veya başka bir zarfı niteler. «Çok» burada «güzel» sıfatını derecelendiriyor.","«Hızlı koştu» → hızlı zarf|«Hızlı araba» → hızlı sıfat"],
+["T","Sözcük Türleri",0,"«gibi, kadar, için, ile, göre, sanki değil» hangisi edattır? Edatlar nedir?","gibi, kadar, için, ile, göre = edat (ilgeç)","Edatlar tek başına anlamı olmayan, sözcükler arasında ilgi kuran sözcüklerdir. «ve, ama, fakat, çünkü» ise bağlaçtır.","«ile» hem edat (araç: kalemle yazdı) hem bağlaç (Ali ile Veli) olabilir; «ve» konabiliyorsa bağlaç"],
+["T","Fiilimsiler",1,"İsim-fiil ekleri hangileridir?","-ma, -ış, -mak","«Okumak, yürüyüş, gelme». Olumsuzluk -ma ile karışmasın: «gelme!» (emir) çekimli fiildir, «gelmesi güzel» isim-fiildir.","Kalıcı isim olmuş olanlar fiilimsi sayılmaz: dondurma, kavurma, çakmak, yemek (yiyecek anlamında)"],
+["T","Fiilimsiler",1,"Sıfat-fiil (ortaç) ekleri hangileridir?","-an, -ası, -maz, -ar, -dık, -acak, -mış","Hafıza: «AnASI MAZ AR, DIK ACAK MIŞ». Fiilden türeyip ismi niteler: «koşan çocuk, okunacak kitap, kırılmış cam».","«Gelecek yıl» → sıfat-fiil|«Geçmiş olsun» → kalıplaşmış"],
+["T","Fiilimsiler",1,"Zarf-fiil (ulaç) ekleri hangileridir?","-ıp, -arak, -ınca, -madan, -ken, -dıkça, -alı, -casına, -r…-maz, -a…-a","Fiilden türeyip fiili zaman/durum yönünden niteler: «Koşarak geldi», «Görünce sevindi», «Gülerek konuştu».","«Okudukça» → zarf-fiil|«Geleli» → zarf-fiil|«Gelir gelmez» → zarf-fiil"],
+["T","Cümle Bilgisi",1,"Cümlenin ögeleri bulunurken ilk ne bulunur?","Yüklem","Sonra yükleme «kim/ne» sorulup özne; «neyi/ne» ile nesne; «-e/-de/-den» soruları ile dolaylı tümleç; «nasıl/ne zaman/niçin/ne kadar» ile zarf tümleci bulunur.","Belirtili nesne: «Kitabı okudu» (neyi?)|Belirtisiz nesne: «Kitap okudu» (ne?)|Edat tümleci: «Arkadaşıyla geldi»"],
+["T","Cümle Bilgisi",0,"«Gelmez değil.» cümlesi anlamca nasıldır?","Biçimce olumsuz, anlamca olumlu","Çift olumsuzluk olumlu anlam verir. Ayrıca «Bilmiyor muyum?» biçimce soru, anlamca olumlu cümledir.","«Geldi mi ya!» → biçimce soru, anlamca soru değil"],
+["T","Cümle Bilgisi",0,"Yüklemi sonda olan cümleye ne denir?","Kurallı (düz) cümle","Yüklem sonda değilse devrik cümle; yüklemi olmayan, «…» ile biten cümleye eksiltili cümle denir.","İsim cümlesi: yüklem isim soylu (Hava güzel.)|Fiil cümlesi: yüklem çekimli fiil (Hava ısındı.)"],
+["T","Cümle Bilgisi",0,"Yapısına göre cümleler kaça ayrılır?","Basit, birleşik, sıralı, bağlı","Birleşik cümlede yan cümlecik (fiilimsi, şart eki, ki, iç içe) bulunur; sıralı cümlede bağımsız cümleler virgül/noktalı virgülle; bağlı cümlede bağlaçla bağlanır.","«Kar yağınca yollar kapandı» → birleşik|«Geldi, oturdu, gitti» → sıralı"],
+["T","Yazım",1,"«her şey, hiçbir, birçok, bir şey, hiç kimse» — hangileri bitişik?","hiçbir, birçok bitişik; her şey, bir şey, hiç kimse ayrı","En çok sorulan yazım kuralı. «Herhangi, birkaç, hiçbiri» de bitişik yazılır.","«Herkes» bitişik|«Her biri» ayrı|«Birtakım» bitişik"],
+["T","Yazım",1,"Kurum adlarına gelen ekler kesmeyle ayrılır mı?","Hayır: «Türk Dil Kurumuna»","Kurum, kuruluş, kurul, birleşim, oturum ve iş yeri adlarına gelen ekler kesme işaretiyle ayrılmaz. Ama kişi, yer, ülke adlarına gelen çekim ekleri ayrılır: Ankara'ya, Ali'nin.","«Türkiye Büyük Millet Meclisinde» kesme yok|«TBMM'de» kısaltmaya gelen ek kesmeyle ayrılır|Yapım eki gelince kesme yok: Ankaralı"],
+["T","Yazım",1,"Kısaltmalara gelen ekler nasıl yazılır?","Kısaltmanın son harfinin okunuşuna göre: TDK'ye, TBMM'ye, NATO'ya","«TDK» harf harf okunur (te-de-ke) → TDK'ye. «NATO, ASELSAN» kelime gibi okunur → NATO'ya.","«kg'dan» (kilogramdan diye okunur)|«ABD'ye» (a-be-de-ye)"],
+["T","Yazım",0,"«etmek/olmak» ile kurulan birleşik fiiller ne zaman bitişik yazılır?","Ses düşmesi veya türemesi olunca","«Kaybolmak, affetmek, sabretmek, hissetmek» bitişik; ses olayı yoksa ayrı: «yardım etmek, kabul etmek, memnun olmak».","«Seyretmek» bitişik (seyir+etmek, ünlü düştü)"],
+["T","Yazım",0,"Pekiştirmeli sıfatlar nasıl yazılır?","Bitişik: masmavi, yemyeşil, sapasağlam, büsbütün","Pekiştirme hecesi sözcükle kaynaşır. «Kıpkırmızı, dümdüz, besbelli» de bitişiktir.","İkilemeler ayrı yazılır: «yavaş yavaş, mavi mavi»"],
+["T","Yazım",0,"Sayılar nasıl yazılır?","Ayrı: «on beş, yüz yirmi»; para işlemlerinde (çek, senet) bitişik","Sayılar harfle ayrı yazılır. Sıra sayısı rakamla: «15.» veya «15'inci». «Üçüncü» → 3.","«Onbeş» yanlış|Topluluk: «üçlü, beşer» bitişik"],
+["T","Yazım",0,"Gün ve ay adları ne zaman büyük harfle başlar?","Belirli bir tarih bildirince: «29 Ekim 1923 Pazartesi»","Tarih belirtmiyorsa küçük yazılır: «Her pazartesi toplantı var», «ekim ayında».","Yön adları: yer adından önce gelince büyük: «Doğu Anadolu»"],
+["T","Noktalama",1,"Noktalı virgül (;) nerede kullanılır?","Virgülle ayrılmış tür ve takımları birbirinden ayırmada; ögeleri arasında virgül olan sıralı cümleleri ayırmada","«Kırmızı, beyaz; mavi, mor renkler…» Sıralı cümleler arasında da kullanılır.","Ögeleri ayırmak, cümleleri bağlamak için virgül kullanılır (;) değil"],
+["T","Noktalama",1,"İki nokta (:) nerede kullanılır?","Açıklama veya örnek verilecek cümlenin sonunda","«Bahçede çeşitli meyveler vardı: elma, armut, ayva.» Ayrıca konuşma çizgisinden önce, saat ayırmada değil (saat ayırmada nokta: 10.15).","İki noktadan sonra özel isim yoksa küçük harfle başlanır (cümle değilse)"],
+["T","Noktalama",0,"Üç nokta (…) nerede kullanılır?","Tamamlanmamış cümle sonunda; kaba söz yerine; sayıp bitirilmeyen örneklerde","«Kendini tutamadı, bağırdı…»","Soru ve ünlemle birlikte: «?..» «!..»"],
+["T","Sözcükte Anlam",1,"Deyim ile atasözü farkı nedir?","Atasözü öğüt verir, kalıplaşmış yargı bildirir; deyim genelde mecaz anlamlı kalıp söz","«Damlaya damlaya göl olur» atasözü; «etekleri zil çalmak» deyim. Atasözlerinde ad, ses ve kalıp değişmez.","Deyimler çoğunlukla mastarla biter (-mak/-mek)|«Göze girmek» → deyim"],
+["T","Cümlede Anlam",1,"Neden-sonuç ile amaç-sonuç cümlesi nasıl ayırt edilir?","Amaç-sonuçta «için» yerine «amacıyla» konabilir; nedende «-dığı için, çünkü» vardır","«Sınavı kazanmak için çalıştı» → amaç. «Yağmur yağdığı için ıslandık» → neden.","Koşul-sonuç: «-sa/-se, -ınca, -dıkça»|Karşılaştırma: «daha, en, kadar, gibi»"],
+["T","Cümlede Anlam",0,"Öznel ve nesnel yargı farkı nedir?","Öznel: kişiden kişiye değişen; nesnel: kanıtlanabilir","«Bu kitap çok sıkıcı» öznel; «Bu kitap 320 sayfadır» nesneldir.","«En güzel», «bence», «muhteşem» → öznel ipuçları"],
+["T","Anlatım Bozukluğu",1,"«Yaklaşık 5-6 kişi geldi» cümlesindeki bozukluk nedir?","Gereksiz sözcük kullanımı","«5-6» zaten yaklaşıklık bildirir; «yaklaşık» gereksizdir. Benzerleri: «geri iade», «kısa bir özet», «en optimum», «sebebi … nedeniyledir».","«Hiç kimse gelmedi» doğru|«Pek çok kitaplar» → çokluk eki gereksiz"],
+["T","Anlatım Bozukluğu",1,"Özne-yüklem uyumsuzluğu örneği nedir?","«Bu kararı herkes onaylamadılar» (herkes → onaylamadı)","Topluluk ve belgisiz zamir özneli cümlelerde yüklem tekil olur. «Biz ve onlar gittik» doğrudur (1. çoğul kişi).","«Sen ve ben gideceğiz» doğru|Ögenin ortak kullanılamaması: «Ona inandım, güvendim» → «Ona inandım, ona güvendim» değil, «Ona inandım ve güvendim» doğru; «Onu sevdim ve güvendim» bozuk (onu/ona)"],
+/* ================= TARİH ================= */
+["H","İslamiyet Öncesi",1,"Tarihte bilinen ilk Türk devleti hangisidir?","Asya Hun Devleti (Büyük Hun)","Mete Han döneminde ordu onlu sisteme göre örgütlendi; bu düzen günümüz Türk ordusunun da temeli sayılır. Çin Seddi, Hun akınlarına karşı Çinliler tarafından yapıldı.","Mete Han → onlu sistem|Kavimler Göçü (375) → Avrupa Hunları, Attila|Kavimler Göçü sonucu Roma ikiye ayrıldı, feodalite doğdu"],
+["H","İslamiyet Öncesi",1,"«Türk» adını devlet adı olarak ilk kullanan devlet hangisidir?","Göktürkler (I. Göktürk Devleti)","Türk adı resmî devlet adı olarak ilk kez Göktürklerde kullanıldı. II. Göktürk Devleti'nden Orhun (Göktürk) Kitabeleri kaldı: ilk Türkçe yazılı belge, Türk alfabesiyle yazılmıştır.","Orhun Kitabeleri: Bilge Kağan, Kül Tigin, Tonyukuk adına|Kitabeler Moğolistan'dadır|Kendi alfabesini kullanan ilk Türk devleti: Göktürkler"],
+["H","İslamiyet Öncesi",1,"Yerleşik hayata geçen ilk Türk devleti hangisidir?","Uygurlar","Uygurlar Maniheizm'i (Mani dini) kabul ettiler, yerleşik hayata geçip şehirler, tapınaklar kurdular, kendi alfabelerini ve matbaayı kullandılar.","Mani dini savaşçı ruhu zayıflattı|Uygur alfabesi Moğollara da geçti"],
+["H","İslamiyet Öncesi",1,"Eski Türklerde «kut» anlayışı nedir?","Yönetme yetkisinin Tanrı tarafından verildiği inancı","Kağan, ülkeyi yönetme yetkisini (kut) Tanrı'dan aldığına inanırdı; kut kan yoluyla babadan oğula geçerdi. Bu, ülkenin hanedanın ortak malı sayılmasına ve taht kavgalarına yol açtı.","Kurultay (toy) → devlet işlerinin görüşüldüğü meclis|Töre → yazısız hukuk kuralları|Ötüken → kutsal merkez"],
+["H","İslamiyet Öncesi",0,"Eski Türklerde «yuğ», «balbal», «kurgan» ne anlama gelir?","Yuğ: cenaze töreni; balbal: mezar taşları; kurgan: mezar odası","Ölümden sonra yaşama inanırlardı; ölenin eşyaları kurgana konurdu. Balbal, ölenin öldürdüğü düşmanı temsil ederdi. Cenazede okunan ağıta «sagu» denir.","Sığır (av töreni), şölen (kutlama) de sorulabilir"],
+["H","Türk-İslam",1,"Türklerin İslamiyet'e geçişini hızlandıran savaş hangisidir?","Talas Savaşı (751)","Abbasiler ile Çin arasında yapıldı; Karluklar Abbasileri destekledi. Sonuç: Türkler İslam'a ısındı, kâğıt yapımı İslam dünyasına geçti.","Talas → kâğıdın batıya yayılması|Abbasiler döneminde Türkler orduda yükseldi"],
+["H","Türk-İslam",1,"İlk Müslüman Türk devleti hangisidir?","Karahanlılar","Satuk Buğra Han İslamiyet'i kabul etti. Karahanlı dönemi eserleri: Kutadgu Bilig (Yusuf Has Hacip), Divanü Lügati't-Türk (Kaşgarlı Mahmut), Atabetü'l-Hakayık (Edip Ahmet Yükneki). Resmî dil Türkçe idi.","Divan-ı Hikmet → Ahmet Yesevi|Kutadgu Bilig → «mutluluk veren bilgi», siyasetname türü|Divanü Lügati't-Türk → Araplara Türkçe öğretmek için"],
+["H","Türk-İslam",1,"Büyük Selçuklu Devleti hangi savaşla kuruldu?","Dandanakan Savaşı (1040)","Gaznelilere karşı kazanıldı. Pasinler (1048) Bizans'la ilk savaş; Malazgirt (1071, Alparslan) Anadolu'nun kapılarını Türklere açtı.","Nizamülmülk → Nizamiye medreseleri, Siyasetname|İkta sistemi → Osmanlı'daki tımarın temeli|Katvan (1141) → yıkılış sürecinde yenilgi"],
+["H","Türk-İslam",1,"Anadolu'nun kesin Türk yurdu olduğunu gösteren savaş hangisidir?","Miryokefalon (1176)","Türkiye Selçukluları (II. Kılıç Arslan) Bizans'ı yendi. Bizans Anadolu'yu geri alma umudunu yitirdi. Kösedağ (1243) Moğollara yenilgi → Türkiye Selçuklu yıkılış süreci.","Malazgirt (1071) → Anadolu'nun kapısı açıldı|Miryokefalon (1176) → Anadolu Türk yurdu oldu|Kösedağ (1243) → Moğol hâkimiyeti"],
+["H","Türk-İslam",0,"Türkçeyi resmî dil ilan eden beylik hangisidir?","Karamanoğulları (Karamanoğlu Mehmet Bey, 1277)","Anadolu'da Türkçenin resmî dil olarak kullanılması yönündeki ferman Karamanoğlu Mehmet Bey'e aittir. Bu yüzden 13 Mayıs «Türk Dil Bayramı» olarak kutlanır.","İlk Türk donanması → Çaka Bey (İzmir)|Divriği Ulu Camii → Mengücekliler|Ahilik → Ahi Evran (esnaf teşkilatı)"],
+["H","Osmanlı Kuruluş",1,"Osmanlı Devleti'nin Bizans ile yaptığı ilk savaş hangisidir?","Koyunhisar (Bafeus) Savaşı (1302)","Osman Bey kazandı; Osmanlı bağımsız bir beylik olarak öne çıktı. Kuruluş: 1299, Söğüt.","Orhan Bey → ilk düzenli ordu (yaya-müsellem), ilk para (akçe), ilk medrese (İznik)|Rumeli'ye ilk geçiş → Çimpe Kalesi (1353)"],
+["H","Osmanlı Kuruluş",1,"Yeniçeri Ocağı hangi padişah döneminde kuruldu?","I. Murat","Pençik sistemi ile esirlerden asker alındı; devşirme sistemi bunu izledi. I. Murat döneminde Kosova Savaşı (1389) kazanıldı.","Devşirme → Hristiyan çocukların eğitilip Kapıkulu'na alınması|Enderun → saray okulu"],
+["H","Osmanlı Kuruluş",1,"Fetret Devri'ne yol açan savaş hangisidir?","Ankara Savaşı (1402)","Yıldırım Bayezid, Timur'a yenildi; şehzadeler arasında 11 yıl taht kavgası yaşandı (Fetret Devri). Çelebi Mehmet devleti yeniden birleştirdi.","İstanbul'u ilk kuşatan Osmanlı padişahı → Yıldırım Bayezid|Anadolu Hisarı → Yıldırım Bayezid|Rumeli Hisarı → Fatih"],
+["H","Osmanlı Yükselme",1,"İstanbul'un fethi (1453) tarihsel olarak neyi başlatır?","Yeniçağ'ı (Ortaçağ kapandı)","Fatih Sultan Mehmet İstanbul'u fethetti; Bizans yıkıldı. Fatih, Kanunname-i Âl-i Osman'ı hazırladı. Otlukbeli (1473) ile Akkoyunlular yenildi.","Fatih → «Kayser-i Rum» unvanı|Topkapı Sarayı → Fatih döneminde"],
+["H","Osmanlı Yükselme",1,"Halifeliğin Osmanlılara geçtiği sefer hangisidir?","Mısır Seferi (Mercidabık 1516 – Ridaniye 1517), Yavuz Sultan Selim","Memlükler yıkıldı, halifelik Osmanlılara geçti; kutsal emanetler İstanbul'a getirildi. Çaldıran (1514) ile Safeviler yenildi.","Çaldıran (1514) → Safevi (İran)|Mercidabık (1516), Ridaniye (1517) → Memlük|Halifelik 3 Mart 1924'te kaldırıldı"],
+["H","Osmanlı Yükselme",1,"Akdeniz'in Türk gölü hâline gelmesini sağlayan deniz savaşı?","Preveze (1538), Barbaros Hayrettin Paşa","Kanuni döneminde Haçlı donanması yenildi. Kanuni dönemi: Mohaç (1526) Macaristan, I. Viyana Kuşatması (1529), Fransa'ya kapitülasyonlar (1535).","Kapitülasyonlar → Lozan'da (1923) kaldırıldı|Mohaç → tarihin en kısa meydan savaşlarından"],
+["H","Osmanlı Duraklama",1,"Avusturya ile Osmanlı'nın eşit sayıldığı antlaşma hangisidir?","Zitvatoruk (1606)","Avusturya kralı Osmanlı padişahına eşit kabul edildi (daha önce sadrazama denk sayılıyordu); Avusturya'nın yıllık vergisi kaldırıldı. Osmanlı'nın siyasi üstünlüğü sarsıldı.","Kasr-ı Şirin (1639) → İran sınırı büyük ölçüde bugünkü hâlini aldı"],
+["H","Osmanlı Gerileme",1,"Osmanlı'nın ilk büyük toprak kaybını yaşadığı antlaşma hangisidir?","Karlofça (1699)","II. Viyana Kuşatması (1683) başarısızlığından sonra imzalandı; Macaristan, Mora, Podolya kaybedildi. Gerileme dönemi başladı.","Pasarofça (1718) → Lale Devri başladı|Lale Devri → ilk matbaa (İbrahim Müteferrika, 1727)"],
+["H","Osmanlı Gerileme",1,"Kırım'ın bağımsız olduğu, Rusya'ya Ortodokslar üzerinde söz hakkı veren antlaşma?","Küçük Kaynarca (1774)","Kırım, Osmanlı'dan ayrılan ilk Türk-Müslüman toprağıdır (bağımsız oldu). Osmanlı ilk kez savaş tazminatı ödedi. Rusya'ya Ortodoksların koruyuculuğu tanındı.","Yaş Antlaşması (1792) → Kırım'ın Rusya'ya geçtiği resmen tanındı|Halife sıfatı ilk kez resmî metinde kullanıldı"],
+["H","Osmanlı Yenileşme",1,"Padişahın yetkilerinin ilk kez sınırlandığı belge hangisidir?","Sened-i İttifak (1808)","II. Mahmut ile ayanlar arasında imzalandı; Türk demokrasi tarihinin ilk belgesi sayılır. Padişah ilk kez kendi dışında bir gücü tanıdı.","Tanzimat Fermanı (1839) → hukukun üstünlüğü ilk kez|Kanun-i Esasi (1876) → ilk anayasa"],
+["H","Osmanlı Yenileşme",1,"Yeniçeri Ocağı ne zaman ve hangi olayla kaldırıldı?","1826, Vaka-i Hayriye (II. Mahmut)","Yerine Asakir-i Mansure-i Muhammediye kuruldu. II. Mahmut: ilk resmî gazete Takvim-i Vekayi (1831), ilk nüfus sayımı (1831), posta teşkilatı, Mekteb-i Tıbbiye, Mekteb-i Harbiye.","III. Selim → Nizam-ı Cedit ordusu|Kabakçı Mustafa İsyanı → III. Selim tahttan indirildi"],
+["H","Osmanlı Yenileşme",1,"Tanzimat Fermanı (1839) neyi ilk kez getirdi?","Hukukun üstünlüğü; can, mal, namus güvencesi","Mustafa Reşit Paşa hazırladı. Kanun önünde eşitlik, yargısız cezalandırma yasağı, askerlik süresinin belirlenmesi. Islahat Fermanı (1856) gayrimüslimlere yeni haklar verdi.","Islahat Fermanı → Paris Antlaşması (1856) öncesi Avrupa baskısı|Balta Limanı (1838) → İngiltere'ye ekonomik ayrıcalık"],
+["H","Osmanlı Yenileşme",1,"I. Meşrutiyet ne zaman ilan edildi, ilk anayasa hangisidir?","1876, Kanun-i Esasi","II. Abdülhamit döneminde ilan edildi; Meclis-i Mebusan ve Meclis-i Âyan'dan oluşan meclis açıldı. 93 Harbi (1877-78) bahane edilerek meclis kapatıldı.","II. Meşrutiyet → 1908|31 Mart Vakası → 1909, Hareket Ordusu bastırdı, II. Abdülhamit tahttan indirildi"],
+["H","Dağılma",1,"Mondros Ateşkesi'nin (30 Ekim 1918) en tehlikeli maddesi hangisidir?","7. madde","İtilaf Devletleri güvenliklerini tehdit eden bir durumda herhangi bir stratejik yeri işgal edebilecekti. 24. madde: Vilayat-ı Sitte'de (altı doğu ili) karışıklık olursa İtilaf işgal edebilecekti (Ermeni devleti hedefi).","Mondros → Osmanlı I. Dünya Savaşı'ndan çekildi|Sevr (10 Ağustos 1920) → TBMM tanımadı, uygulanamadı"],
+["H","Dağılma",0,"I. Dünya Savaşı'nda Osmanlı'nın kesin zafer kazandığı cephe hangisidir?","Çanakkale Cephesi (1915)","Mustafa Kemal bu cephede «Anafartalar Kahramanı» olarak tanındı. Sonuç: savaş uzadı, Rusya'ya yardım ulaşamadı → Rusya'da Bolşevik İhtilali kolaylaştı.","Sarıkamış (Kafkas) → Enver Paşa, büyük kayıp|Kanal Cephesi → İngiltere"],
+["H","Milli Mücadele",1,"Kurtuluş Savaşı'nın amacı, gerekçesi ve yönteminin ilk kez belirtildiği belge?","Amasya Genelgesi (22 Haziran 1919)","«Milletin bağımsızlığını yine milletin azim ve kararı kurtaracaktır.» Milli egemenlik vurgusu ilk kez yapıldı; Sivas'ta kongre toplanması kararlaştırıldı. Mustafa Kemal 19 Mayıs 1919'da Samsun'a çıkmıştı.","Havza Genelgesi → işgalleri protesto mitingleri|Amasya Genelgesi → ihtilal beyannamesi niteliği"],
+["H","Milli Mücadele",1,"Manda ve himayenin ilk kez reddedildiği kongre hangisidir?","Erzurum Kongresi (23 Temmuz – 7 Ağustos 1919)","Toplanış bakımından bölgesel, aldığı kararlar bakımından ulusal. Temsil Heyeti ilk kez burada seçildi. «Vatan bir bütündür, parçalanamaz.»","Sivas Kongresi'nde manda kesin olarak reddedildi|Erzurum → Doğu Anadolu Müdafaa-i Hukuk Cemiyeti düzenledi"],
+["H","Milli Mücadele",1,"Tüm cemiyetlerin tek çatıda birleştiği kongre hangisidir?","Sivas Kongresi (4-11 Eylül 1919)","Cemiyetler «Anadolu ve Rumeli Müdafaa-i Hukuk Cemiyeti» adıyla birleşti. Hem toplanış hem karar bakımından ulusal. İrade-i Milliye gazetesi çıkarıldı; Temsil Heyeti tüm yurdu temsil etti.","Amasya Görüşmeleri (Ekim 1919) → İstanbul Hükümeti, Temsil Heyeti'ni hukuken tanıdı|Hâkimiyet-i Milliye gazetesi → Ankara"],
+["H","Milli Mücadele",1,"Misak-ı Milli nerede ve ne zaman kabul edildi?","Son Osmanlı Mebusan Meclisi'nde, 28 Ocak 1920","Milli sınırları ve tam bağımsızlığı belirleyen ant. Sonucunda İstanbul resmen işgal edildi (16 Mart 1920) ve meclis dağıtıldı; bu da TBMM'nin açılmasına (23 Nisan 1920) yol açtı.","Kapitülasyonlar kabul edilemez → Misak-ı Milli maddesi|Boğazlar → dünya ticaretine açık, İstanbul'un güvenliği şartıyla"],
+["H","Milli Mücadele",1,"TBMM'nin ilk askerî ve siyasi başarısı (ilk uluslararası antlaşması) hangisidir?","Gümrü Antlaşması (3 Aralık 1920), Ermenistan ile","Doğu Cephesi'nde Kazım Karabekir komutasında kazanıldı. TBMM'nin imzaladığı ilk uluslararası antlaşma.","Doğu Cephesi → Ermeniler|Güney Cephesi → Fransızlar, Kuva-yi Milliye (Antep, Maraş, Urfa)|Batı Cephesi → Yunanlılar"],
+["H","Milli Mücadele",1,"I. İnönü Savaşı'nın (Ocak 1921) sonuçları nelerdir?","Teşkilat-ı Esasiye kabul edildi, İstiklal Marşı kabul edildi, Londra Konferansı toplandı","Düzenli ordunun ilk başarısı. 20 Ocak 1921 Teşkilat-ı Esasiye (ilk anayasa), 12 Mart 1921 İstiklal Marşı. II. İnönü'den sonra Moskova Antlaşması (16 Mart 1921) imzalandı.","Moskova Antlaşması → Batum Gürcistan'a bırakıldı, Sovyet Rusya Misak-ı Milli'yi tanıdı|İstiklal Marşı → Mehmet Akif Ersoy"],
+["H","Milli Mücadele",1,"Başkomutanlık Kanunu ne zaman ve neden çıkarıldı?","5 Ağustos 1921, Kütahya-Eskişehir yenilgisinden sonra","Meclisin yetkileri 3 aylığına Mustafa Kemal'e verildi. Tekalif-i Milliye emirleriyle halktan ordu için malzeme toplandı.","Sakarya Meydan Muharebesi (23 Ağustos-13 Eylül 1921) → Mustafa Kemal'e «Gazi» unvanı ve mareşallik|Sakarya → Türk ordusunun savunmadan taarruza geçişi"],
+["H","Milli Mücadele",1,"İtilaf Devletlerinden birinin TBMM'yi ilk kez tanıdığı antlaşma?","Ankara Antlaşması (20 Ekim 1921), Fransa ile","Sakarya zaferinden sonra imzalandı; Hatay dışındaki güney sınırımız çizildi. Kars Antlaşması (13 Ekim 1921) ile doğu sınırımız kesinleşti.","Kars Antlaşması → Kafkas cumhuriyetleri (Ermenistan, Gürcistan, Azerbaycan)|Hatay → 1939'da anavatana katıldı"],
+["H","Milli Mücadele",1,"Büyük Taarruz ne zaman başladı?","26 Ağustos 1922, Kocatepe","30 Ağustos'ta Başkomutan Meydan Muharebesi kazanıldı (Zafer Bayramı), 9 Eylül 1922 İzmir kurtarıldı. «Ordular! İlk hedefiniz Akdeniz'dir. İleri!»","Mudanya Ateşkesi (11 Ekim 1922) → Doğu Trakya savaşmadan alındı, İstanbul ve Boğazlar TBMM'ye bırakıldı|Saltanatın kaldırılması → 1 Kasım 1922"],
+["H","Milli Mücadele",1,"Lozan Barış Antlaşması'nda (24 Temmuz 1923) çözülemeyen konular?","Musul sorunu, Hatay (sınır), Boğazlar (uluslararası komisyon), dış borçların ödeme şekli, yabancı okullar","Kapitülasyonlar tamamen kaldırıldı; Lozan, Misak-ı Milli'ye en yakın belgedir. Musul, 1926 Ankara Antlaşması ile Irak'a (İngiliz mandası) bırakıldı.","Boğazlar → 1936 Montrö ile tam Türk egemenliği|Nüfus mübadelesi → Yunanistan ile"],
+["H","Cumhuriyet",1,"Halifelik ne zaman kaldırıldı? Aynı gün başka hangi kararlar alındı?","3 Mart 1924; Tevhid-i Tedrisat Kanunu, Şeriye ve Evkaf Vekâletinin kaldırılması","Eğitim birleştirildi (Milli Eğitim Bakanlığına bağlandı). Diyanet İşleri Başkanlığı kuruldu. Ankara başkent: 13 Ekim 1923; Cumhuriyet: 29 Ekim 1923.","1924 Anayasası → en uzun yürürlükte kalan anayasa (1924-1960)|Erkân-ı Harbiye Vekâleti kaldırıldı (aynı gün)"],
+["H","Cumhuriyet",1,"Kadınlara milletvekili seçme ve seçilme hakkı ne zaman verildi?","5 Aralık 1934","Sıra: belediye seçimleri 1930 → muhtarlık 1933 → milletvekilliği 1934. 1935 seçimlerinde 18 kadın milletvekili meclise girdi.","Medeni Kanun (17 Şubat 1926) → İsviçre'den alındı, çok eşlilik yasaklandı|Soyadı Kanunu → 1934, «Atatürk» soyadı"],
+["H","Cumhuriyet",1,"Harf İnkılabı ne zaman yapıldı?","1 Kasım 1928","Latin harfleri esaslı yeni Türk alfabesi kabul edildi; Millet Mektepleri açıldı (okuma yazma seferberliği, 1929). Uluslararası rakamlar 1928'de kabul edildi.","Türk Tarih Kurumu → 1931|Türk Dil Kurumu → 1932|Üniversite Reformu → 1933 (Darülfünun → İstanbul Üniversitesi)"],
+["H","Cumhuriyet",0,"Şapka Kanunu ve tekke-zaviyelerin kapatılması hangi yıldır?","1925","Aynı yıl uluslararası saat ve takvim kabul edildi (miladi takvim 1926 başından itibaren). Ölçüler kanunu (metre, kilogram) 1931; hafta tatilinin pazara alınması 1935.","Şeyh Sait İsyanı (1925) → Takrir-i Sükûn Kanunu|Laiklik anayasaya → 1937"],
+["H","Cumhuriyet",1,"Halkçılık ilkesi neyi ifade eder?","Sınıf ayrıcalığının reddi; kanun önünde eşitlik, halkın yönetime katılması","Altı ilke: Cumhuriyetçilik, Milliyetçilik, Halkçılık, Devletçilik, Laiklik, İnkılapçılık. Devletçilik: özel teşebbüsün yetersiz kaldığı alanlarda devletin ekonomiye girmesi (1929 Dünya Ekonomik Bunalımı sonrası, I. Beş Yıllık Sanayi Planı 1933).","Laiklik → din ve devlet işlerinin ayrılması|Cumhuriyetçilik → milli egemenlik|Kadınlara siyasi haklar → halkçılık + cumhuriyetçilik"],
+["H","Cumhuriyet",1,"İzmir İktisat Kongresi ne zaman toplandı?","17 Şubat 1923","Lozan görüşmeleri kesildiği sırada toplandı; Misak-ı İktisadi (ekonomik ant) kabul edildi. Milli ekonomi hedeflendi; yerli malı kullanımı teşvik edildi.","Teşvik-i Sanayi Kanunu → 1927|İş Bankası → 1924|Merkez Bankası → 1930"],
+["H","Cumhuriyet",0,"Çok partili hayata geçiş denemeleri hangileridir?","Terakkiperver Cumhuriyet Fırkası (1924) ve Serbest Cumhuriyet Fırkası (1930)","Terakkiperver, Şeyh Sait İsyanı'ndan sonra kapatıldı. Serbest Fırka (Fethi Okyar) kısa süre sonra kendini feshetti. Menemen Olayı (1930) → Kubilay şehit edildi.","Kalıcı çok partili hayat → 1945 Milli Kalkınma Partisi, 1946 Demokrat Parti"],
+["H","Dış Politika",1,"Boğazların tam Türk egemenliğine geçtiği sözleşme hangisidir?","Montrö Boğazlar Sözleşmesi (1936)","Lozan'daki uluslararası Boğazlar Komisyonu kaldırıldı; Türkiye Boğazları silahlandırma hakkı kazandı.","Balkan Antantı → 1934|Sadabat Paktı → 1937 (Türkiye, İran, Irak, Afganistan)|Milletler Cemiyeti'ne üyelik → 1932"],
+["H","Kültür Medeniyet",1,"Divan-ı Hümayun'da maliyeden kim, dış işlerinden kim sorumluydu?","Maliye: defterdar; dış işleri: reisülküttap","Sadrazam: padişahın mutlak vekili. Kazasker: hukuk ve eğitim (kadı, müderris atamaları). Nişancı: tuğra çekme, tapu-tahrir. Kaptan-ı derya: donanma.","Kazasker → kadı atamaları|Nişancı → fermanlara tuğra|Şeyhülislam → fetva (Divan'ın sürekli üyesi değildi)"],
+["H","Kültür Medeniyet",1,"Osmanlı'da tımar sistemi nedir?","Toprak gelirinin asker (cebelü) beslenmesi karşılığı sipahilere verilmesi","Devlet hazineden para çıkmadan büyük bir atlı ordu besledi; toprak işlenir, üretim sürer, vergi toplanırdı. Topraklar «miri arazi» idi (mülkiyeti devlete ait).","Has → padişah ve hanedan, en yüksek gelirli|Zeamet → orta|Tımar → en düşük|İltizam → vergi toplama hakkının açık artırmayla verilmesi"],
+["H","Kültür Medeniyet",1,"Osmanlı'da yönetici (askerî) sınıf hangi gruplardan oluşurdu?","Seyfiye, İlmiye, Kalemiye","Seyfiye: askerler ve yöneticiler (vezir, beylerbeyi). İlmiye: din, eğitim, hukuk (şeyhülislam, kadı, müderris). Kalemiye: bürokrasi, yazışma ve maliye (defterdar, nişancı, reisülküttap). Vergi veren yönetilenlere «reaya» denirdi.","Kazasker → ilmiye sınıfındandır|Reisülküttap → kalemiye|Beylerbeyi → seyfiye"],
+["H","Kültür Medeniyet",1,"Osmanlı'da kadının görevleri nelerdi?","Yargı, belediye işleri ve noterlik","Kadı kazanın hem hâkimi hem yöneticisiydi. Yardımcıları: subaşı (asayiş), muhtesip (pazar, fiyat ve ölçü denetimi), naip (kadı yardımcısı).","Muhtesip → çarşı-pazar, narh (fiyat) kontrolü|Subaşı → güvenlik|Kadı atamaları → kazasker"],
+["H","Kültür Medeniyet",1,"Öşür, cizye ve haraç nedir?","Öşür: Müslüman çiftçinin ürününden 1/10; cizye: gayrimüslim erkeklerden askerlik karşılığı baş vergisi; haraç: gayrimüslim toprak vergisi","Bunlar şer'i (dinî kaynaklı) vergilerdir. Örfî vergiler padişah fermanıyla konurdu: avarız (olağanüstü durum vergisi), çift bozan (toprağı sebepsiz 3 yıl boş bırakan köylüden).","Çift bozan → üretimin sürekliliği amacı|Avarız → savaş, afet dönemleri"],
+["H","Kültür Medeniyet",0,"Osmanlı'da arazi türleri nelerdir?","Miri, mülk ve vakıf arazi","Miri: mülkiyeti devlete ait, kullanım hakkı köylüde (tımar burada uygulanır). Mülk: özel mülkiyet (öşür veya haraç ödenir). Vakıf: geliri hayır işine ayrılmış arazi.","Has-zeamet-tımar → miri arazinin dirlik olarak dağıtımı|Temlik → padişahın araziyi mülk olarak vermesi"],
+["H","Kültür Medeniyet",1,"Kapıkulu askerleri ve eyalet askerleri nelerdir?","Kapıkulu: padişaha bağlı maaşlı merkez ordusu; eyalet askerleri: tımarlı sipahi, akıncı, azap, yörük","Kapıkulu yayaları: yeniçeri, cebeci, topçu, top arabacı, lağımcı. Kapıkulu süvarileri altı bölüktür. Ordunun en kalabalık kısmı tımarlı sipahilerdi.","Akıncılar → sınır boylarında öncü hafif süvari|Azaplar → donanma ve kale muhafızı|Deniz kuvvetleri → kaptan-ı derya"],
+["H","Kültür Medeniyet",1,"İlk Osmanlı medresesi nerede ve kim tarafından açıldı?","İznik, Orhan Bey (1331)","Fatih döneminde Sahn-ı Seman medreseleri, Kanuni döneminde Süleymaniye medreseleri kuruldu. Saray okulu Enderun devşirmelerden devlet adamı yetiştirdi.","Sıbyan mektebi → ilkokul düzeyi|Rüştiye → II. Mahmut, ortaokul düzeyi|Darülfünun → ilk üniversite denemesi"],
+["H","Kültür Medeniyet",1,"Osmanlı'da veraset (tahta geçiş) anlayışı nasıl değişti?","Ülke hanedanın ortak malı → Fatih'le kardeş katli → I. Ahmet'le Ekber ve Erşed sistemi","Ekber ve erşed: hanedanın en yaşlı ve akıllı erkeği tahta geçer. Sancağa çıkma usulü kaldırılınca şehzadeler sarayda yetişti (kafes usulü), deneyimsiz padişahlar başa geldi.","Sancağa çıkma → şehzadelerin yönetim deneyimi kazanması|Fatih Kanunnamesi → kardeş katline izin"],
+["H","Kültür Medeniyet",1,"Lale Devri'nin yenilikleri nelerdir?","İlk matbaa (İbrahim Müteferrika), itfaiye (Tulumbacı Ocağı), kâğıt ve kumaş fabrikaları, Avrupa'ya geçici elçiler","Pasarofça (1718) ile başlayıp Patrona Halil İsyanı (1730) ile sona erdi. Paris'e giden Yirmisekiz Mehmet Çelebi'nin sefaretnamesi önemlidir.","İlk sürekli elçilikler → III. Selim (Londra, 1793)|Matbaada dinî kitap basılmadı (başlangıçta)"],
+["H","Kültür Medeniyet",1,"Osmanlı'da ilk dış borç ne zaman alındı?","1854, Kırım Savaşı sırasında İngiltere'den","Borçlar ödenemeyince 1875'te moratoryum ilan edildi. 1881 Muharrem Kararnamesi ile Duyun-u Umumiye kuruldu; bazı gelirler alacaklı devletlere bırakıldı.","Duyun-u Umumiye → ekonomik bağımsızlığın zedelenmesi|Osmanlı borçları → Lozan'da paylaştırıldı, 1954'te ödeme tamamlandı"],
+["H","Kültür Medeniyet",0,"Osmanlı'da ilk yarı resmî ve ilk özel gazeteler hangileridir?","Ceride-i Havadis (1840, yarı resmî); Tercüman-ı Ahval (1860, ilk özel Türk gazetesi)","İlk resmî gazete Takvim-i Vekayi (1831). Tercüman-ı Ahval'i Şinasi ve Agah Efendi çıkardı; Şinasi daha sonra Tasvir-i Efkâr'ı yayımladı.","İlk tiyatro eseri → Şair Evlenmesi (Şinasi)|Takvim-i Vekayi → II. Mahmut"],
+["H","Kültür Medeniyet",0,"Sultanahmet Camii'nin mimarı kimdir?","Sedefkâr Mehmet Ağa (I. Ahmet döneminde)","Mimar Sinan'ın öğrencisidir. Bursa Ulu Camii → Yıldırım Bayezid; Edirne Üç Şerefeli Camii → II. Murat; Selimiye → Mimar Sinan.","Topkapı Sarayı → Fatih|Dolmabahçe Sarayı → Abdülmecit (19. yy)"],
+["H","Kültür Medeniyet",0,"Osmanlı'da ilk para ve ilk altın para hangileridir?","İlk para akçe (Orhan Bey); ilk altın para sultani (Fatih)","Akçe gümüş paradır. Para basmak bağımsızlık sembolüdür (hutbe okutmak gibi).","Ahilik → esnafın ahlak ve meslek eğitimi|Lonca → fiyat ve kalite denetimi"],
+["H","Kültür Medeniyet",0,"Mimar Sinan'ın çıraklık, kalfalık ve ustalık eserleri hangileridir?","Şehzade Camii, Süleymaniye Camii, Selimiye Camii (Edirne)","Selimiye Camii ve Külliyesi UNESCO Dünya Mirası Listesi'ndedir (2011).","Süleymaniye → İstanbul|Selimiye → Edirne"],
+["H","Kültür Medeniyet",0,"Osmanlı'da esnaf ve zanaatkârların örgütü nedir?","Lonca (Ahilik geleneğinin devamı)","Fiyat, kalite, üretim miktarı kontrol edilirdi; rekabet ve tekelcilik engellenirdi. Dükkân açma iznine «gedik» denirdi.","Ahilik → Ahi Evran, Selçuklu döneminde kuruldu"],
+/* ================= COĞRAFYA ================= */
+["C","Konum",1,"Türkiye'nin matematik (mutlak) konumu nedir?","36°–42° Kuzey paralelleri, 26°–45° Doğu meridyenleri","Kuzey Yarım Küre'de ve Ekvator'un kuzeyinde olduğundan güneş ışıkları hiçbir zaman dik gelmez; dört mevsim belirgindir; güneye bakan yamaçlar daha sıcaktır (bakı).","Doğu–batı arası 19 meridyen → 76 dakika yerel saat farkı|Doğuda güneş daha erken doğar|Kuzeye gidildikçe sıcaklık azalır, gece-gündüz farkı yazın artar"],
+["C","Konum",0,"Türkiye'nin uç noktaları nerelerdir?","Kuzey: Sinop İnceburun; Güney: Hatay; Doğu: Iğdır (Dilucu); Batı: Çanakkale Gökçeada (Avlaka Burnu)","En doğu ile en batı arasındaki yerel saat farkı 76 dakikadır.","Ortak saat: Türkiye UTC+3 kullanır"],
+["C","İklim",1,"Türkiye'de her mevsim yağışlı olan iklim hangisidir?","Karadeniz iklimi","Yazları serin, kışları ılık; doğal bitki örtüsü ormandır. Türkiye'de en fazla yağış alan il Rize'dir (yamaç yağışları).","Akdeniz iklimi → yazlar sıcak-kurak, kışlar ılık-yağışlı; maki|Karasal iklim → kışlar soğuk, yazlar sıcak-kurak; bozkır (step)|En az yağış → Tuz Gölü çevresi (Konya Ovası)"],
+["C","İklim",0,"Poyraz ve lodos hangi yönlerden eser?","Poyraz: kuzeydoğu; Lodos: güneybatı","Yıldız: kuzey, Karayel: kuzeybatı, Gün batısı: batı, Kıble: güney, Keşişleme: güneydoğu, Gün doğusu: doğu.","Lodos → İstanbul'da sıcaklığı artırır, fırtınalara yol açar|Poyraz → serin ve nemli"],
+["C","Yer Şekilleri",1,"Türkiye'nin en yüksek dağı hangisidir, nasıl oluşmuştur?","Ağrı Dağı (5137 m), volkanik","Diğer volkanik dağlar: Erciyes, Hasan, Süphan, Nemrut, Tendürek, Karacadağ. Kuzey Anadolu Dağları ve Toroslar kıvrımla oluşmuştur.","Kapadokya peribacaları → volkanik tüfün aşınmasıyla|Kırık dağlar → Ege'de horst-graben (Bozdağlar, Aydın Dağları)"],
+["C","Yer Şekilleri",1,"Pamukkale travertenleri hangi oluşumun örneğidir?","Karstik birikim (kalkerli suların çökelmesi)","Karstik aşınım şekilleri: lapya, dolin, uvala, polye, obruk (Konya Karapınar), mağara (Damlataş). Biriktirme şekilleri: traverten, sarkıt, dikit, sütun.","Karstik şekiller en çok Toroslarda (Akdeniz) görülür|Obruk → Konya-Karapınar"],
+["C","Yer Şekilleri",0,"Türkiye'deki başlıca fay hatları hangileridir?","Kuzey Anadolu, Doğu Anadolu ve Batı Anadolu fay hatları","6 Şubat 2023 Kahramanmaraş merkezli depremler Doğu Anadolu Fay Hattı üzerinde oldu. Deprem riski en az Konya-Karaman çevresi ve Güneydoğu'nun bir kısmında.","1999 Gölcük depremi → Kuzey Anadolu Fay Hattı"],
+["C","Su Varlığı",1,"Türkiye'nin en büyük gölü ve oluşumu nedir?","Van Gölü, volkanik set gölü","Nemrut Dağı lavlarının önünü kapatmasıyla oluştu; sodalı (soda oranı yüksek) sulara sahiptir. Nemrut Krater Gölü ise volkanik krater gölüdür.","Tektonik göller → Tuz, Burdur, Acıgöl, Sapanca, Manyas, Uluabat|Heyelan set → Tortum, Abant, Sera, Yedigöller|Karstik → Salda|Alüvyal set → Bafa, Köyceğiz, Mogan, Eymir"],
+["C","Su Varlığı",1,"Türkiye sınırları içinde doğup denize dökülen en uzun akarsu hangisidir?","Kızılırmak","Karadeniz'e dökülür, ağzında Bafra Ovası (delta) vardır. Yeşilırmak → Çarşamba deltası; Seyhan-Ceyhan → Çukurova; Göksu → Silifke deltası.","Fırat ve Dicle → Basra Körfezi'ne (sınır dışına) akar|Menderes → büklüm (menderes) oluşumuna adını verdi|Kapalı havzalar → Konya, Van, Tuz Gölü"],
+["C","Tarım",1,"Türkiye'nin dünyada ilk sırada olduğu ürünlerden fındık en çok nerede yetişir?","Karadeniz kıyıları (Ordu, Giresun, Samsun…)","Fındık ve kayısı (Malatya), incir (Aydın) ve kuru üzümde (Manisa) Türkiye dünyada ilk sıralardadır.","Çay → Rize (Doğu Karadeniz)|Kayısı → Malatya|İncir → Aydın|Çekirdeksiz kuru üzüm → Manisa"],
+["C","Tarım",1,"Pamuk en çok hangi bölgelerde yetişir?","Güneydoğu Anadolu (GAP-Şanlıurfa), Ege, Çukurova","Pamuk sıcaklık ve sulama ister; GAP ile Harran Ovası'nda üretim arttı. Tekstil sanayisini besler.","Zeytin → Ege ve Akdeniz kıyıları|Tütün → Ege|Şeker pancarı → İç Anadolu (Konya)|Ayçiçeği → Trakya|Çeltik (pirinç) → Trakya (Edirne-Meriç), Karadeniz"],
+["C","Tarım",0,"Muz ve turunçgiller nerede yetişir?","Akdeniz kıyıları (muz: Alanya-Anamur; turunçgil: Adana, Mersin, Antalya)","Muz yüksek sıcaklık ister; Türkiye'de sadece Akdeniz'in korunaklı kıyılarında yetişir. Haşhaş → Afyon çevresi (devlet izniyle).","Kivi → Doğu Karadeniz (Yalova da)|Üzüm → hemen her bölgede, en çok Ege"],
+["C","Hayvancılık",0,"Büyükbaş hayvancılık en çok nerede yapılır?","Doğu Anadolu (Erzurum-Kars Platosu)","Yaz yağışları ile gür çayırlar oluşur (mera hayvancılığı). Küçükbaş: İç Anadolu ve Doğu Anadolu. Ankara keçisi → tiftik. İpek böcekçiliği → Bursa, dut ağacı. Arıcılık → Muğla (çam balı), Ordu.","Besi ahırı hayvancılığı → Marmara, Ege (büyük şehirlere yakınlık)"],
+["C","Madenler",1,"Bor mineralleri en çok nerede çıkarılır?","Kütahya, Eskişehir, Balıkesir, Bursa","Türkiye dünya bor rezervlerinin en büyük kısmına sahiptir. Bor; enerji, cam, seramik, temizlik ve uzay sanayisinde kullanılır.","Taşkömürü → sadece Zonguldak|Linyit → Afşin-Elbistan, Soma, Tunçbilek|Krom → Elazığ (Guleman), Fethiye|Demir → Divriği, Hekimhan"],
+["C","Madenler",1,"Boksit nerede çıkarılır, neyin hammaddesidir?","Seydişehir (Konya); alüminyum","Seydişehir Alüminyum Tesisleri buradadır. Bakır: Murgul (Artvin), Ergani (Diyarbakır), Küre (Kastamonu). Petrol: Batman, Adıyaman, Şırnak (Gabar).","Doğalgaz → Karadeniz'de Sakarya Gaz Sahası|Kurşun-çinko → Keban|Mermer → Afyon, Marmara Adası"],
+["C","Enerji",1,"Türkiye'nin en büyük barajı hangisidir?","Atatürk Barajı (Fırat, Şanlıurfa)","GAP'ın merkezindedir; sulama ve elektrik üretir. Keban ilk büyük baraj (Fırat). Diğerleri: Karakaya (Fırat), Ilısu (Dicle), Hirfanlı (Kızılırmak), Sarıyar (Sakarya).","Jeotermal → Denizli Sarayköy (Kızıldere, ilk)|Rüzgâr → Ege ve Marmara (Çanakkale, İzmir)|Nükleer → Akkuyu (Mersin)|Güneş → Konya Karapınar GES"],
+["C","Sanayi",0,"Türkiye'nin ilk demir-çelik fabrikası nerede kuruldu?","Karabük (1939)","Taşkömürüne (Zonguldak) yakınlık için seçildi. Diğerleri: Ereğli (Zonguldak), İskenderun (Hatay).","İlk şeker fabrikaları → Uşak ve Alpullu (1926)|Petrol rafinerileri → Batman, İzmit (Tüpraş), Aliağa, Kırıkkale|Kâğıt → İzmit (SEKA)"],
+["C","Ulaşım",0,"Dünyanın en uzun orta açıklıklı asma köprüsü hangisidir?","1915 Çanakkale Köprüsü (2022)","Çanakkale Boğazı üzerinde, Gelibolu-Lapseki arasındadır. Osmangazi Köprüsü → İzmit Körfezi; Yavuz Sultan Selim → İstanbul Boğazı (3. köprü).","Marmaray → 2013, Boğaz'ın altından demiryolu|Avrasya Tüneli → karayolu tüp geçiş|İlk YHT → Ankara-Eskişehir (2009)"],
+["C","Nüfus",1,"Cumhuriyet'in ilk nüfus sayımı ne zaman yapıldı?","1927","Osmanlı'daki ilk nüfus sayımı 1831'de (II. Mahmut, sadece erkekler). En kalabalık il İstanbul; en az nüfuslu il Bayburt. Nüfus yoğunluğu en az olan il Tunceli.","Doğurganlık hızı yenileme düzeyinin (2,1) altına düştü → nüfus yaşlanıyor|2026-2035 → «Aile ve Nüfus On Yılı» ilan edildi"],
+["C","Nüfus",0,"Türkiye'de en çok göç alan iller hangileridir?","İstanbul, Ankara, İzmir, Kocaeli, Antalya, Bursa","Göç sebebi: sanayi, iş imkânı, eğitim, sağlık. Göç verenler genelde Doğu ve Karadeniz'in kırsal kesimleri.","Mevsimlik göç → Çukurova pamuk, fındık hasadı, turizm"],
+["C","Turizm",1,"Göbeklitepe nerededir, neden önemlidir?","Şanlıurfa; bilinen en eski tapınak alanı (~12.000 yıl)","«Tarihin sıfır noktası» olarak anılır; 2018'de UNESCO Dünya Mirası Listesi'ne girdi. Karahantepe de aynı bölgededir (Taş Tepeler).","Çatalhöyük → Konya, Neolitik|Efes → İzmir|Hattuşa → Çorum, Hitit başkenti|Nemrut Dağı → Adıyaman, Kommagene"],
+["C","Bölgeler",0,"Türkiye'nin 7 coğrafi bölgesi hangi kongrede belirlendi?","I. Türk Coğrafya Kongresi, Ankara (1941)","Bölgeler: Marmara, Ege, Akdeniz, Karadeniz, İç Anadolu, Doğu Anadolu, Güneydoğu Anadolu. En büyük bölge Doğu Anadolu; en küçük Güneydoğu Anadolu.","En kalabalık bölge → Marmara|En seyrek → Doğu Anadolu"],
+["C","Kıyılar",0,"Ege kıyıları neden girintili-çıkıntılıdır?","Dağlar kıyıya dik uzanır (enine kıyı)","Karadeniz ve Akdeniz'de dağlar kıyıya paralel (boyuna kıyı), kıyılar düz ve az girintili. İstanbul Haliç → ria tipi kıyıya örnek.","Ege'de ovalar denize kadar sokulur (Gediz, Menderes)|Kıta sahanlığı Ege'de geniştir"],
+["C","İklim",1,"Türkiye'de yağış türleri nerede görülür?","Yamaç (orografik): Karadeniz ve Akdeniz kıyıları; cephe: Akdeniz kış yağışları; yükselim (konveksiyonel): İç Anadolu ilkbahar «kırkikindi» yağışları","En fazla yağış Doğu Karadeniz (Rize); en az yağış Tuz Gölü çevresi. Doğu Anadolu'da kar yağışlı gün ve karla örtülü gün sayısı en fazladır.","Yıllık sıcaklık farkı en fazla → Doğu Anadolu (karasallık)|En az → Karadeniz kıyıları (denizellik)|Kırkikindi → İç Anadolu, Mayıs-Haziran"],
+["C","İklim",0,"Türkiye'de yıllık ortalama sıcaklık en düşük ve en yüksek yerler nerelerdir?","En düşük: Erzurum-Kars (Doğu Anadolu); en yüksek: Akdeniz kıyıları (Antalya, İskenderun)","Yükselti arttıkça sıcaklık düşer (her 200 m'de yaklaşık 1°C). Doğu Anadolu yüksek olduğu için en soğuk bölgedir.","Bakı etkisi → güneye bakan yamaçlarda tarım ve yerleşme daha yüksektedir|Orman üst sınırı güney yamaçlarda daha yüksektir"],
+["C","Bitki Örtüsü",1,"Türkiye'de doğal bitki örtüleri ve görüldüğü yerler?","Orman: Karadeniz; maki: Akdeniz ve Ege kıyıları; bozkır (step): İç Anadolu ve Doğu Anadolu; dağ çayırı: Doğu Anadolu yüksekleri","Maki tahrip edilince garig oluşur. Bozkırlar ilkbaharda yeşerip yazın kurur. Karadeniz'de geniş yapraklı ve iğne yapraklı ormanlar yükseltiye göre sıralanır.","Endemik bitki → Türkiye'de çok sayıda (yaklaşık üçte biri endemik)|Kızılçam → Akdeniz|Ladin, köknar → Karadeniz yüksekleri"],
+["C","Toprak",1,"Akdeniz bölgesinde görülen kırmızı renkli toprak hangisidir?","Terra rossa","Kalker üzerinde oluşur, Akdeniz iklimine özgüdür. Alüvyal topraklar akarsuların biriktirdiği ovalarda bulunur ve en verimlilerdir. Kahverengi bozkır toprakları İç Anadolu'dadır.","Erozyon → eğim, bitki örtüsü tahribi, yanlış tarım; TEMA Vakfı|Heyelan en çok → Karadeniz|Çığ en çok → Doğu Anadolu"],
+["C","Yer Şekilleri",1,"Türkiye'nin en büyük delta ovası hangisidir?","Çukurova (Seyhan ve Ceyhan nehirleri)","Diğer deltalar: Bafra (Kızılırmak), Çarşamba (Yeşilırmak), Silifke (Göksu). Ege'deki Gediz, Küçük ve Büyük Menderes ovaları graben (çöküntü) ovalarıdır.","Tektonik ovalar → Muş, Erzincan, Malatya|Karstik ova (polye) → Elmalı, Muğla|En geniş ova → Konya Ovası"],
+["C","Yer Şekilleri",0,"Türkiye'deki başlıca platolar hangileridir?","Erzurum-Kars, Ardahan, Haymana, Obruk, Cihanbeyli, Gaziantep, Şanlıurfa, Taşeli, Teke","Erzurum-Kars ve Ardahan platoları büyükbaş hayvancılığa uygundur (çayır). Taşeli ve Teke platoları karstik yapılıdır.","Lavlarla oluşan plato → Erzurum-Kars|Akarsularla yarılmış plato → Haymana, Obruk"],
+["C","Yer Şekilleri",0,"Türkiye'nin en büyük adası hangisidir?","Gökçeada (Çanakkale)","Diğer büyük adalar: Bozcaada, Marmara Adası (mermer), Avşa, Cunda. Önemli yarımadalar: Gelibolu, Kapıdağ, Biga, Kocaeli, Datça, Bodrum, Sinop (İnceburun), Teke.","Türkiye'nin en batısı → Gökçeada|Marmara Adası → mermer çıkarımı"],
+["C","Su Varlığı",1,"Türkiye'de akarsuların hidroelektrik potansiyeli neden yüksektir?","Ortalama yükselti fazla, eğim yüksek","Ancak akarsu rejimleri düzensizdir (yağış ve kar erimesine bağlı), çoğu ulaşıma elverişli değildir. En düzenli akarsular Karadeniz'dekilerdir.","Fırat → Türkiye'nin en fazla su taşıyan akarsuyu|Göller Yöresi → Isparta-Burdur-Afyon çevresi"],
+["C","Nüfus",1,"Türkiye'de nüfusun seyrek olduğu yerler nerelerdir?","Doğu Anadolu dağlık alanları, Tuz Gölü çevresi, Menteşe yöresi, Toroslar, Yıldız Dağları","Seyreklik nedeni: kurak iklim (Tuz Gölü), engebe ve sert iklim (Doğu Anadolu), verimsiz karstik araziler. Sık nüfuslu yerler: Marmara kıyıları, Ege ovaları, Çukurova, Karadeniz kıyıları.","Menteşe yöresi → engebe ve ulaşım güçlüğü|Çukurova → verimli toprak ve sanayi"],
+["C","Ekonomi",1,"Türkiye'deki bölgesel kalkınma projeleri hangileridir?","GAP (Güneydoğu Anadolu), DAP (Doğu Anadolu), DOKAP (Doğu Karadeniz), KOP (Konya Ovası), ZBK (Zonguldak-Bartın-Karabük)","GAP en kapsamlı projedir: Fırat ve Dicle üzerindeki barajlarla sulama ve enerji; Harran Ovası'nda pamuk üretimi arttı.","KOP → Konya Ovası'nın sulanması|DOKAP → Doğu Karadeniz ulaşım ve tarım"],
+["C","Ekonomi",0,"Türkiye'nin en fazla sanayi tesisinin bulunduğu il ve en büyük konteyner limanları?","Sanayi: Kocaeli ve İstanbul; limanlar: Mersin, İstanbul (Ambarlı), İzmir, Kocaeli","Osmanlı'da ilk demiryolu İzmir-Aydın hattıdır (1856). Türkiye'de yük ve yolcu taşımacılığında en çok karayolu kullanılır.","Karadeniz limanları → Samsun, Trabzon|İskenderun → demir-çelik ve petrol boru hattı|Bakü-Tiflis-Ceyhan → petrol boru hattı"],
+["C","Ekonomi",0,"Türkiye'de en çok balık hangi denizden avlanır?","Karadeniz (en çok hamsi)","Karadeniz'in kıta sahanlığı dar olsa da besin bakımından zengindir. İç sularda alabalık ve sazan yetiştiriciliği yaygındır.","Ege ve Akdeniz → çipura, levrek çiftlikleri|Van Gölü → inci kefali (sodalı suya uyumlu tek balık)"],
+["C","Turizm",1,"Kış turizmi merkezleri hangileridir?","Uludağ (Bursa), Palandöken (Erzurum), Erciyes (Kayseri), Sarıkamış (Kars), Kartalkaya (Bolu)","Termal turizm: Afyon, Pamukkale, Yalova, Kızılcahamam. Yayla turizmi: Doğu Karadeniz (Ayder, Uzungöl). İnanç turizmi: Efes Meryem Ana Evi, Şanlıurfa, Konya (Mevlana).","Sarıkamış → sarıçam ormanları, kristal kar|Kapadokya → balon turu"],
+/* ================= VATANDAŞLIK ================= */
+["V","Hukuk",1,"Hukukun asli (yazılı) kaynakları hangileridir?","Anayasa, kanun, Cumhurbaşkanlığı kararnamesi, yönetmelik","Hiyerarşi: Anayasa > Kanun = (CB kararnamesi kanunla çatışırsa kanun uygulanır) > Yönetmelik. Örf-adet yazısız asli kaynaktır. Yardımcı kaynaklar: yargı kararları ve bilimsel görüşler (doktrin).","Normlar hiyerarşisinin en üstünde → Anayasa|Milletlerarası temel hak antlaşmaları → kanunla çatışırsa antlaşma uygulanır"],
+["V","Hukuk",1,"Hak ehliyeti ne zaman başlar?","Sağ doğmak koşuluyla ana rahmine düşüldüğü andan itibaren","Herkesin hak ehliyeti vardır. Fiil ehliyeti için: ayırt etme gücü, ergin olma (18 yaş) ve kısıtlı olmama gerekir.","Evlenmeyle ergin olma → 17 yaş (olağanüstü durumda mahkeme kararıyla 16)|Mahkeme kararıyla erginlik → 15 yaşını doldurmuş, kendi isteği + veli rızası"],
+["V","Hukuk",0,"Kamu hukuku dalları hangileridir?","Anayasa, idare, ceza, vergi, devletler genel hukuku","Özel hukuk: medeni hukuk, borçlar, ticaret, devletler özel hukuku. İş ve sosyal güvenlik hukuku karma niteliklidir.","Medeni hukuk → kişiler, aile, miras, eşya|Devletler özel hukuku → yabancılık unsuru taşıyan özel ilişkiler"],
+["V","Hukuk",0,"Hukuki yaptırım türleri nelerdir?","Ceza, cebri icra, tazminat, iptal, hükümsüzlük (butlan)","Hukuk kurallarını diğer sosyal kurallardan ayıran şey devlet gücüyle desteklenen yaptırımdır. Ahlak ve görgü kurallarının yaptırımı toplumsal kınamadır.","Tazminat → maddi ve manevi|İdari yaptırım → para cezası, ehliyete el koyma"],
+["V","Anayasa Tarihi",1,"Türkiye'nin ilk anayasası hangisidir?","Kanun-i Esasi (1876)","Sıra: 1876 Kanun-i Esasi → 1921 Teşkilat-ı Esasiye → 1924 → 1961 → 1982. 1921: güçler birliği, en kısa (23 madde), olağanüstü dönem anayasası. 1924: en uzun süre yürürlükte kalan.","1961 → Anayasa Mahkemesi, iki meclisli yapı (Senato), sosyal devlet|1982 → 7 Kasım 1982 halkoylamasıyla kabul|Milli egemenlik ilk kez → 1921 Teşkilat-ı Esasiye"],
+["V","1982 Anayasası",1,"1982 Anayasası'nın değiştirilemeyen maddeleri hangileridir?","İlk 3 madde (değiştirilemeyeceğini 4. madde söyler)","1. madde: devletin şekli Cumhuriyet. 2. madde: demokratik, laik, sosyal hukuk devleti. 3. madde: ülke ve millet bütünlüğü, dil Türkçe, bayrak, İstiklal Marşı, başkent Ankara.","Değiştirilmesi teklif dahi edilemez|Başlangıç ilkeleri de anayasaya dahildir"],
+["V","1982 Anayasası",1,"2017 halkoylamasıyla getirilen başlıca değişiklikler?","Cumhurbaşkanlığı hükümet sistemi; 600 milletvekili; seçilme yaşı 18; TBMM ve CB seçimleri 5 yılda bir aynı gün","Bakanlar Kurulu ve başbakanlık kaldırıldı; Cumhurbaşkanlığı kararnamesi getirildi; askerî yargı (Askerî Yargıtay, AYİM) kaldırıldı; HSYK → HSK (13 üye).","Gensoru kaldırıldı|CB yardımcıları ve bakanlar TBMM dışından atanır, milletvekili olamaz"],
+["V","Yasama",1,"TBMM kaç milletvekilinden oluşur, seçimler kaç yılda bir yapılır?","600 milletvekili, 5 yılda bir","Milletvekili seçilme yaşı 18. TBMM Başkanlık Divanı seçimleri: ilk dönem 2 yıl, ikinci dönem 3 yıl için.","Seçimlerin yenilenmesi → TBMM 3/5 (360) oyu veya CB kararı ile|Ara seçim → boşalan üyelikler için, 30 aydan önce ve son 1 yıl içinde yapılmaz"],
+["V","Yasama",1,"TBMM'nin görev ve yetkileri nelerdir?","Kanun koymak, bütçe kanununu kabul etmek, savaş ilanına karar vermek, para basılmasına karar vermek, genel ve özel af ilanı, milletlerarası antlaşmaları onaylamayı uygun bulmak","«Savaş ilanı» ve «af» TBMM'nindir. Cumhurbaşkanı ise sürekli hastalık, sakatlık ve kocama nedeniyle kişilerin cezalarını hafifletebilir veya kaldırabilir.","Sıkıyönetim kaldırıldı; olağanüstü hali CB ilan eder, TBMM onaylar"],
+["V","Yasama",0,"TBMM'nin bilgi edinme ve denetim yolları nelerdir?","Meclis araştırması, genel görüşme, meclis soruşturması, yazılı soru","Meclis soruşturması: CB yardımcıları ve bakanlar hakkında (CB için ayrı usul). Yazılı soru CB yardımcıları ve bakanlara sorulur, 15 gün içinde cevaplanır.","Sözlü soru ve gensoru → 2017'de kaldırıldı|Yüce Divan → Anayasa Mahkemesi"],
+["V","Yürütme",1,"Cumhurbaşkanı adayı olma şartları nelerdir?","40 yaşını doldurmuş, yükseköğrenim yapmış, milletvekili seçilme yeterliliğine sahip Türk vatandaşı","Halk tarafından doğrudan seçilir, görev süresi 5 yıl, en fazla iki kez. İkinci döneminde TBMM seçimleri yenilerse bir kez daha aday olabilir.","Aday gösterme: siyasi parti grupları, son seçimde %5 oy alan partiler veya 100.000 seçmen|İlk turda salt çoğunluk yoksa ikinci tur"],
+["V","Yürütme",1,"Cumhurbaşkanı Anayasa Mahkemesi'nin kaç üyesini seçer?","12 (15 üyenin 12'sini)","Kalan 3 üyeyi TBMM seçer. AYM üyeleri 12 yıl için seçilir, tekrar seçilemez. CB ayrıca HSK'nin 4 üyesini, rektörleri, YÖK üyelerini, Genelkurmay Başkanını atar.","CB kanunları 15 gün içinde yayımlar veya bir kez geri gönderir|CB, AYM'de iptal davası açabilir"],
+["V","Yargı",1,"Yüksek mahkemeler hangileridir?","Anayasa Mahkemesi, Yargıtay, Danıştay, Uyuşmazlık Mahkemesi","Yargıtay: adli yargının, Danıştay: idari yargının son inceleme merci. Uyuşmazlık Mahkemesi: adli ve idari yargı arasındaki görev ve hüküm uyuşmazlıklarını çözer. Sayıştay mahkeme değildir; TBMM adına mali denetim yapar.","HSK (Hâkimler ve Savcılar Kurulu) → 13 üye, başkanı Adalet Bakanı|Siyasi parti kapatma → AYM, üyelerin 2/3 çoğunluğu|Bireysel başvuru → AYM (2012'den beri)"],
+["V","Temel Haklar",1,"Hangi haklar olağanüstü dönemlerde bile dokunulamaz (çekirdek haklar)?","Yaşama hakkı, maddi-manevi varlık bütünlüğü, din-vicdan özgürlüğü, suç ve cezaların geriye yürümezliği, masumluk karinesi","Savaş hukukuna uygun fiiller sonucu ölüm halleri hariç yaşama hakkına dokunulamaz. Kimse dinini açıklamaya zorlanamaz.","Kişi hakları → yaşam, konut dokunulmazlığı, haberleşme|Sosyal-ekonomik → eğitim, sağlık, sendika|Siyasi → seçme-seçilme, dilekçe, kamu hizmetine girme"],
+["V","Temel Haklar",0,"Kamu Denetçiliği Kurumu (Ombudsman) kime bağlıdır?","TBMM Başkanlığına","2012'de kuruldu; idarenin işleyişiyle ilgili şikâyetleri inceler. Kamu Başdenetçisi TBMM tarafından seçilir.","Dilekçe hakkı → vatandaşlar ve karşılıklılık esasıyla yabancılar"],
+["V","Seçim",0,"Türkiye'de seçimler hangi ilkelere göre yapılır?","Serbest, eşit, gizli, tek dereceli, genel oy; açık sayım ve döküm","Seçimlerin yönetim ve denetimi yargı organlarına aittir: Yüksek Seçim Kurulu (YSK). YSK kararlarına karşı başka mercie başvurulamaz.","Seçmen yaşı → 18|Seçimler yargı gözetiminde"],
+["V","İdare",1,"Merkezi yönetimin taşra teşkilatı nelerden oluşur?","İl (vali) ve ilçe (kaymakam)","Başkent teşkilatı: Cumhurbaşkanlığı, bakanlıklar. Yerinden yönetim: yerel yönetimler (il özel idaresi, belediye, köy) ve hizmet yerinden yönetim (üniversiteler, TRT, meslek kuruluşları). Merkezi yönetim yerel yönetimleri «idari vesayet» ile denetler.","Vali → ilde devletin ve CB'nin temsilcisi|Köy → muhtar ve ihtiyar heyeti, köy derneği|Belediye organları → meclis, encümen, başkan"],
+["V","İdare",0,"Türkiye'nin 81. ili hangisidir?","Düzce (1999)","80. Osmaniye (1996), 79. Kilis (1995). 1991-92'de Karaman, Kırıkkale, Batman, Şırnak, Bartın, Ardahan, Iğdır, Yalova, Karabük il oldu.","Büyükşehir belediyesi sayısı → 30"],
+/* ================= GÜNCEL ================= */
+["G","2026 Ön Lisans'ta Çıkanlar",1,"4 Ekim 2026 KPSS Ön Lisans'ta sorulan Armand «Mondo» Duplantis hangi branşta dünya rekortmenidir?","Sırıkla yüksek atlama (İsveçli atlet)","Ön lisans sınavında en çok konuşulan güncel soruydu. Benzer tarzda dünya sporundan rekortmen veya şampiyon sorulabilir.","Aynı sınavda Aşık Veysel ve «Küçük Prens» de soru konusu oldu|Spor sorusu → olimpiyat, dünya rekoru, ilk kez kazanılan şampiyonluk"],
+["G","2026 Ön Lisans'ta Çıkanlar",1,"«Küçük Prens» kitabının yazarı kimdir?","Antoine de Saint-Exupéry (Fransız yazar ve pilot)","2026 Ön Lisans sınavında soru konusu olan başlıklardan biri. Klasik eser-yazar eşleştirmeleri lise sınavında da sorulabilir.","Sefiller → Victor Hugo|Suç ve Ceza → Dostoyevski|Simyacı → Paulo Coelho|Don Kişot → Cervantes"],
+["G","2026 Ön Lisans'ta Çıkanlar",1,"Âşık Veysel hakkında bilinmesi gerekenler nelerdir?","Sivas Şarkışla doğumlu halk ozanı; küçük yaşta çiçek hastalığından gözlerini kaybetti","«Uzun ince bir yoldayım» ve «Kara toprak» en bilinen eserleridir. Köy Enstitülerinde saz öğretmenliği yaptı. 2026 Ön Lisans'ta adayların konuştuğu sorulardan biriydi.","Halk ozanları → Karacaoğlan, Yunus Emre, Pir Sultan Abdal, Dadaloğlu|Neşet Ertaş → Kırşehir, «Bozkırın Tezenesi»"],
+["G","Türkiye 2026",1,"COP31 İklim Zirvesi nerede ve ne zaman yapılacak?","Antalya, 9–20 Kasım 2026","BM İklim Değişikliği Çerçeve Sözleşmesi 31. Taraflar Konferansı; Türkiye ilk kez ev sahipliği yapıyor. COP31 Başkanı: Çevre, Şehircilik ve İklim Değişikliği Bakanı Murat Kurum. Ev sahipliği için Avustralya da adaydı.","COP30 → 2025, Belém (Brezilya)|COP29 → 2024, Bakü (Azerbaycan)|Sıfır Atık hareketi → Türkiye öncülüğünde"],
+["G","Türkiye 2026",1,"2026 NATO Liderler Zirvesi nerede yapıldı?","Ankara, 7–8 Temmuz 2026","Türkiye NATO zirvesine ikinci kez ev sahipliği yaptı (ilki 2004 İstanbul). NATO'nun 32 üyesi var; son katılanlar Finlandiya (2023) ve İsveç (2024).","Türkiye NATO'ya katılış → 1952|NATO karargâhı → Brüksel"],
+["G","Türkiye 2026",1,"Türkiye'nin UNESCO Dünya Mirası Listesi'ndeki son alanı hangisidir?","Sardes Antik Kenti ve Bin Tepe Lidya Tümülüsleri (Manisa, 2025)","Bu kayıtla Türkiye'nin listedeki alan sayısı 22'ye çıktı. İlk kayıtlar 1985: İstanbul'un Tarihi Alanları, Divriği Ulu Camii ve Darüşşifası, Göreme ve Kapadokya.","Sardes → Lidya Krallığı'nın başkenti, ilk parayı Lidyalılar bastı|Gordion ve Anadolu Selçuklu ahşap camileri → 2023|Arslantepe → 2021|Göbeklitepe → 2018"],
+["G","Türkiye 2026",0,"2027 UNESCO Dünya Miras Komitesi toplantısına hangi şehir ev sahipliği yapacak?","İstanbul (49. oturum)","Türkiye, UNESCO Dünya Mirası Geçici Listesi'nde 80 adayla dünyada ilk sıradadır.","Kahramanmaraş → 2025'te UNESCO Yaratıcı Şehirler Ağı'na edebiyat alanında katılan ilk Türk şehri"],
+["G","Nobel 2026",1,"2026 Nobel Edebiyat Ödülü'nü kim kazandı?","Anne Carson (Kanadalı şair ve yazar)","2025 Nobel Edebiyat: László Krasznahorkai (Macaristan). Türkiye'den Nobel alanlar: Orhan Pamuk (Edebiyat, 2006) ve Aziz Sancar (Kimya, 2015).","2026 Nobel Barış → Navi Pillay (Güney Afrikalı hukukçu)|2025 Nobel Barış → María Corina Machado (Venezuela)"],
+["G","Nobel 2026",0,"2026 Nobel Fizik, Kimya ve Tıp ödüllerini kimler aldı?","Fizik: Francis Halzen; Kimya: Henri B. Kagan ve Kenso Soai; Tıp: Karl Deisseroth, Peter Hegemann, Georg Nagel","Fizik: IceCube Nötrino Gözlemevi ve yüksek enerjili astrofiziksel nötrinolar. Kimya: asimetrik organik sentezde doğrusal olmayan etkiler ve otokataliz. Tıp: ışığa duyarlı iyon kanalları ve optogenetik.","2026 Ekonomi → Robert E. Hall ve Michael Woodford (ABD)|Nobel ödülleri İsveç'te verilir, Barış ödülü Norveç'te (Oslo)"],
+["G","Spor",1,"EURO 2032'ye hangi ülkeler ev sahipliği yapacak?","Türkiye ve İtalya (ortak)","UEFA, Ekim 2023'te kararı açıkladı. 2026 FIFA Dünya Kupası ABD-Kanada-Meksika'da, ilk kez 48 takımla oynandı.","2026 Kış Olimpiyatları → Milano-Cortina (İtalya)|2028 Yaz Olimpiyatları → Los Angeles (ABD)|2030 Dünya Kupası → İspanya-Portekiz-Fas (açılış maçları Güney Amerika'da)"],
+["G","Bilim-Teknoloji",1,"İlk Türk astronot kimdir?","Alper Gezeravcı (Ocak 2024, Ax-3 görevi, Uluslararası Uzay İstasyonu)","İkinci Türk astronot Tuva Cihangir Atasever (Haziran 2024, alt yörüngesel uçuş). Türksat 6A (2024) ilk yerli haberleşme uydusu.","KAAN → milli muharip uçak, ilk uçuş Şubat 2024|Togg → yerli otomobil|Kızılelma → insansız savaş uçağı"],
+["G","Yıl Dönümleri",1,"2026'da yıl dönümü kutlanan tarihî olaylar hangileridir?","Malazgirt Zaferi 955. yıl (1071), Bursa'nın fethi 700. yıl (1326), Cumhuriyet'in 103. yılı","ÖSYM yıl dönümlerini güncel bilgi sorusu olarak sorabiliyor. Bursa, Orhan Bey döneminde fethedildi ve Osmanlı'nın ilk başkenti oldu.","Osmanlı başkentleri → Söğüt, Bursa, Edirne, İstanbul|29 Ekim 2026 → Cumhuriyet'in 103. yılı"],
+["G","Türkiye 2026",0,"2026–2035 dönemi Türkiye'de nasıl ilan edildi?","«Aile ve Nüfus On Yılı»","Doğurganlık hızının düşmesi üzerine aileyi ve nüfus artışını destekleme hedefiyle ilan edildi. 2025 yılı «Aile Yılı» idi.","Doğurganlık hızı → yenileme düzeyi 2,1'in altında"]
+];
+
+/* ---------- Durum ---------- */
+const CARDS = RAW.map((r,i)=>({id:i,d:r[0],k:r[1],s:r[2],q:r[3],a:r[4],e:r[5],y:r[6]?r[6].split("|"):[]}));
+const store={get(k,f){try{const v=localStorage.getItem("kpssHap_"+k);return v==null?f:JSON.parse(v)}catch(e){return f}},set(k,v){try{localStorage.setItem("kpssHap_"+k,JSON.stringify(v))}catch(e){}}};
+let filter=store.get("filter","ALL"), mode=store.get("mode","card"), shuffled=store.get("shuf",false);
+let review=new Set(store.get("review",[])); let posMap=store.get("pos",{});
+let list=[], idx=0, revealed=false, answered={}, score={ok:0,bad:0}, optCache={};
+
+const FILTERS=[["ALL","Tümü",null],["STAR","⭐ Çok çıkar",null],["REV","🔁 Tekrarım",null],["T",D.T,"--c-T"],["H",D.H,"--c-H"],["C",D.C,"--c-C"],["V",D.V,"--c-V"],["G",D.G,"--c-G"]];
+const $=s=>document.querySelector(s);
+function seeded(arr,seed){const a=arr.slice();let s=seed;for(let i=a.length-1;i>0;i--){s=(s*9301+49297)%233280;const j=Math.floor(s/233280*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function build(){
+  let L=CARDS.filter(c=>filter==="ALL"||(filter==="STAR"&&c.s)||(filter==="REV"&&review.has(c.id))||c.d===filter);
+  if(shuffled) L=seeded(L,store.get("seed",7));
+  list=L; idx=Math.min(posMap[filter+(shuffled?"s":"")]||0,Math.max(0,list.length-1));
+}
+function counts(f){return CARDS.filter(c=>f==="ALL"||(f==="STAR"&&c.s)||(f==="REV"&&review.has(c.id))||c.d===f).length}
+function renderChips(){
+  $("#chips").innerHTML=FILTERS.map(([k,l,col])=>`<button class="chip" data-f="${k}" aria-pressed="${filter===k}" ${col?`style="--dot:var(${col})"`:""}>${col?"<i></i>":""}${l}<span class="n">${counts(k)}</span></button>`).join("");
+  $("#chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.f;store.set("filter",filter);build();renderChips();render(0)});
+  const on=$("#chips").querySelector('[aria-pressed="true"]'); if(on) on.scrollIntoView({inline:"nearest",block:"nearest"});
+}
+function options(c){
+  if(optCache[c.id]) return optCache[c.id];
+  const pool=[...new Set(CARDS.filter(x=>x.d===c.d&&x.k===c.k&&x.a!==c.a).map(x=>x.a))];
+  const more=[...new Set(CARDS.filter(x=>x.d===c.d&&x.k!==c.k&&x.a!==c.a).map(x=>x.a))];
+  const pick=seeded(pool,c.id+3).slice(0,4); for(const m of seeded(more,c.id+11)){if(pick.length>=4)break;if(!pick.includes(m))pick.push(m)}
+  const o=seeded([c.a,...pick],c.id*7+1); optCache[c.id]=o; return o;
+}
+function esc(s){return s.replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))}
+function cardHTML(c){
+  const top=`<div class="card-top"><div class="tag" style="--subj:var(--c-${c.d})">${D[c.d]}<span>· ${esc(c.k)}</span></div>${c.s?'<span class="star">ÇOK ÇIKAR</span>':""}</div>`;
+  const back=`<div class="ans"><small>CEVAP</small>${esc(c.a)}</div><div class="exp">${esc(c.e)}</div>${c.y.length?`<div class="side"><h4>YAN SORULAR · BENZERLERİ</h4><ul>${c.y.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`:""}`;
+  if(mode==="card"){
+    return top+`<div class="card-body"><div class="q">${esc(c.q)}</div>${revealed?back:`<div class="hint">Cevap için karta dokun · kaydırarak geç</div>`}</div>`;
+  }
+  const opts=options(c), st=answered[c.id];
+  const L="ABCDE";
+  return top+`<div class="card-body"><div class="q">${esc(c.q)}</div><div class="opts">${opts.map((o,i)=>{let cls="";if(st!=null){if(o===c.a)cls="right";else if(i===st)cls="wrong"}return `<button class="opt ${cls}" data-i="${i}" ${st!=null?"disabled":""}><span class="b">${L[i]}</span><span>${esc(o)}</span></button>`}).join("")}</div>${st!=null?back.replace('<div class="ans"><small>CEVAP</small>'+esc(c.a)+'</div>',""):""}</div>`;
+}
+function render(dir){
+  const stage=$("#stage");
+  if(!list.length){stage.innerHTML=`<div class="empty">${filter==="REV"?"Tekrar listen boş.<br>Bir kartta 🔁 Tekrar'a basınca buraya eklenir.":"Bu filtrede kart yok."}</div>`;updBar();return}
+  const c=list[idx]; const old=stage.querySelector(".card");
+  const el=document.createElement("article"); el.className="card"; el.innerHTML=cardHTML(c);
+  if(old&&dir){
+    old.classList.add(dir>0?"out-up":"out-down");
+    setTimeout(()=>old.remove(),280);
+    el.classList.add("in"); el.style.transform=`translateY(${dir>0?"40px":"-40px"})`; el.style.opacity="0";
+    stage.appendChild(el); requestAnimationFrame(()=>{requestAnimationFrame(()=>{el.classList.remove("in");el.style.transform="";el.style.opacity=""})});
+  } else { stage.innerHTML=""; stage.appendChild(el) }
+  el.querySelectorAll(".opt").forEach(b=>b.onclick=ev=>{ev.stopPropagation();answer(c,+b.dataset.i)});
+  updBar();
+}
+function rerender(){const el=$("#stage .card");if(!el)return;el.innerHTML=cardHTML(list[idx]);el.querySelectorAll(".opt").forEach(b=>b.onclick=ev=>{ev.stopPropagation();answer(list[idx],+b.dataset.i)})}
+function answer(c,i){if(answered[c.id]!=null)return;answered[c.id]=i;const ok=options(c)[i]===c.a;ok?score.ok++:score.bad++;if(!ok&&!review.has(c.id)){review.add(c.id);store.set("review",[...review]);renderChips()}rerender();updBar()}
+function go(d){if(!list.length)return;const n=idx+d;if(n<0||n>=list.length)return;idx=n;revealed=false;posMap[filter+(shuffled?"s":"")]=idx;store.set("pos",posMap);render(d)}
+function updBar(){
+  const n=list.length; $("#count").textContent=n?`${idx+1} / ${n}`:"0 / 0";
+  $("#prog").style.width=n?((idx+1)/n*100)+"%":"0";
+  const c=list[idx]; $("#rev").setAttribute("aria-pressed",c&&review.has(c.id)?"true":"false");
+  $("#score").innerHTML=mode==="test"&&(score.ok+score.bad)?`Doğru <b>${score.ok}</b> · Yanlış <em>${score.bad}</em>`:(mode==="test"?"Şıkka dokun":"");
+  $("#prev").disabled=idx<=0; $("#next").disabled=idx>=n-1;
+  $("#mCard").setAttribute("aria-pressed",mode==="card"); $("#mTest").setAttribute("aria-pressed",mode==="test");
+  $("#shuf").setAttribute("aria-pressed",shuffled); $("#shuf").style.background=shuffled?"var(--fg)":""; $("#shuf").style.color=shuffled?"var(--bg)":"";
+}
+/* ---------- Dokunma / kaydırma ---------- */
+let sx=0,sy=0,st=0,moved=false;
+const stage=$("#stage");
+stage.addEventListener("pointerdown",e=>{sx=e.clientX;sy=e.clientY;st=Date.now();moved=false});
+stage.addEventListener("pointerup",e=>{
+  const dx=e.clientX-sx, dy=e.clientY-sy, ax=Math.abs(dx), ay=Math.abs(dy);
+  if(Math.max(ax,ay)>45){ if(ay>ax) go(dy<0?1:-1); else go(dx<0?1:-1); return }
+  if(e.target.closest(".opt"))return;
+  if(mode==="card"&&Date.now()-st<500){revealed=!revealed;rerender()}
+});
+/* Kart içi uzun içerik: içerik kaydırılabiliyorsa dikey kaydırmayı içeriğe bırak */
+stage.addEventListener("touchmove",e=>{const b=e.target.closest(".card-body");if(b&&b.scrollHeight>b.clientHeight+4){stage.style.touchAction="pan-y"}},{passive:true});
+stage.addEventListener("touchend",()=>{stage.style.touchAction="none"});
+stage.addEventListener("wheel",e=>{const b=e.target.closest(".card-body");if(b&&b.scrollHeight>b.clientHeight+4)return;if(Math.abs(e.deltaY)>30){e.preventDefault();wheelGo(e.deltaY>0?1:-1)}},{passive:false});
+let wl=0;function wheelGo(d){const t=Date.now();if(t-wl<450)return;wl=t;go(d)}
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowDown"||e.key==="ArrowRight"||e.key==="j")go(1);
+  else if(e.key==="ArrowUp"||e.key==="ArrowLeft"||e.key==="k")go(-1);
+  else if(e.key===" "||e.key==="Enter"){if(mode==="card"){e.preventDefault();revealed=!revealed;rerender()}}
+  else if(mode==="test"&&/^[a-eA-E1-5]$/.test(e.key)){const i=/\d/.test(e.key)?+e.key-1:"abcde".indexOf(e.key.toLowerCase());if(list[idx])answer(list[idx],i)}
+});
+$("#next").onclick=()=>go(1); $("#prev").onclick=()=>go(-1);
+$("#rev").onclick=()=>{const c=list[idx];if(!c)return;review.has(c.id)?review.delete(c.id):review.add(c.id);store.set("review",[...review]);renderChips();updBar()};
+$("#shuf").onclick=()=>{shuffled=!shuffled;if(shuffled)store.set("seed",Math.floor(Math.random()*9999)+1);store.set("shuf",shuffled);build();render(0)};
+$("#mCard").onclick=()=>{mode="card";store.set("mode",mode);revealed=false;render(0)};
+$("#mTest").onclick=()=>{mode="test";store.set("mode",mode);render(0)};
+/* Geri sayım */
+(function(){const ex=new Date("2026-10-25T10:15:00+03:00");const d=Math.ceil((ex-new Date())/864e5);$("#sub").textContent=d>0?`SINAVA ${d} GÜN · 25 EKİM 10.15`:"25 EKİM PAZAR · 10.15 · BOL ŞANS"})();
+build(); renderChips(); render(0);
+</script>
+
+</body>
+</html>
