@@ -28,7 +28,6 @@ class MainActivity : Activity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setupEdgeToEdge()
 
         webView = WebView(this).apply {
             overScrollMode = View.OVER_SCROLL_NEVER
@@ -54,6 +53,8 @@ class MainActivity : Activity() {
             addView(webView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         }
         setContentView(container)
+        // Needs the decor view, which setContentView creates.
+        setupEdgeToEdge()
 
         if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
             webView.loadUrl("file:///android_asset/index.html")

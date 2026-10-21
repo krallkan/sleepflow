@@ -12,11 +12,11 @@ adb logcat -d -b crash
 echo "===== [$TAG] AndroidRuntime / app log ====="
 adb logcat -d | grep -E "AndroidRuntime|FATAL|$PKG|chromium|cr_" | tail -120
 echo "===== [$TAG] process ====="
-if adb shell pidof $PKG; then echo "[$TAG] APP RUNNING"; else echo "[$TAG] APP NOT RUNNING"; fi
+if adb shell pidof $PKG; then echo "[$TAG] APP RUNNING"; STATUS=0; else echo "::error::[$TAG] APP NOT RUNNING"; STATUS=1; fi
 echo "===== [$TAG] on-screen text ====="
 adb shell uiautomator dump /sdcard/ui.xml > /dev/null 2>&1
 adb shell cat /sdcard/ui.xml | grep -oE '(text|content-desc)="[^"]+"' | head -40
 mkdir -p screens
 adb exec-out screencap -p > "screens/$TAG.png"
 adb uninstall $PKG > /dev/null
-exit 0
+exit $STATUS
