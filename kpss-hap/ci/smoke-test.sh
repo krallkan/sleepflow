@@ -7,6 +7,14 @@ adb install -r "$APK" || exit 1
 adb logcat -c
 adb shell am start -W -n $PKG/.MainActivity
 sleep 20
+# Emulator-only: when Play Services restarts itself, Android also kills every app bound to its
+# font provider (WebView is). That is not an app failure, so relaunch once in that case only.
+if ! adb shell pidof $PKG > /dev/null && adb logcat -d | grep -q "$PKG.*depends on provider.*in dying proc com.google.android.gms"; then
+  echo "[$TAG] killed with dying Play Services process; relaunching once"
+  adb logcat -c
+  adb shell am start -W -n $PKG/.MainActivity
+  sleep 20
+fi
 echo "===== [$TAG] crash buffer ====="
 adb logcat -d -b crash
 echo "===== [$TAG] AndroidRuntime / app log ====="
